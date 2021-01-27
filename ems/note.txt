@@ -1,0 +1,15 @@
+One of the possible ways of reducing the indexing time is by using shared indexes. Unlike the regular indexes that are built locally, shared indexes are generated once and are later reused on another computer whenever they are needed.
+For more information on indexing and other ways of reducing the indexing time, refer to Indexing.
+IntelliJ IDEA can connect to the dedicated resource to download shared indexes for your JDK and Maven libraries and build shared indexes for your project's code. Whenever IntelliJ IDEA needs to re-index your application, it will use the available shared indexes and will build local indexes for the rest of the project. Normally, this is faster than building local indexes for the entire application from scratch.
+To be able to use shared indexes, the Shared Indexes plugin must be installed and enabled.
+
+Install the Shared Indexes plugin﻿
+Only for IntelliJ IDEA Community
+
+The plugin is bundled and enabled by default in IntelliJ IDEA Ultimate. If you use IntelliJ IDEA Community, install the plugin manually. For more information on IntelliJ IDEA editions, refer to Comparison matrix.
+
+In the Settings/Preferences dialog Ctrl+Alt+S , select Plugins.
+
+Switch to the Marketplace tab, type Shared Indexes, and click Install.
+
+Apply the changes and close the dialog. Restart the IDE if prompted.
