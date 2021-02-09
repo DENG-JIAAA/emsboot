@@ -24,6 +24,11 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public Boolean isThisUserExist(User user) {
-        return userMapper.selectOne(new QueryWrapper<>(user)) != null;
+        return getUserByLoginInfo(user) != null;
+    }
+
+    @Override
+    public User getUserByLoginInfo(User user) {
+        return userMapper.selectOne(new QueryWrapper<>(user));
     }
 }

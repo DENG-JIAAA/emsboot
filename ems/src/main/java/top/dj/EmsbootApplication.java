@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 @MapperScan("top.dj.mapper")
+//@EnableCaching
 public class EmsbootApplication {
 
     public static void main(String[] args) {

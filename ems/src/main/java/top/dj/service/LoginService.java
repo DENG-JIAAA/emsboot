@@ -8,4 +8,7 @@ import top.dj.POJO.DO.User;
  */
 public interface LoginService {
     public Boolean isThisUserExist(User user);
+
+    public User getUserByLoginInfo(User user);
+
 }

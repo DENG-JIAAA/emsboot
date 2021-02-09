@@ -1,4 +1,4 @@
-package top.dj.util;
+package top.dj.utils;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
@@ -9,6 +9,7 @@ import top.dj.POJO.DO.BaseDO;
  * @date 2021/1/21
  */
 
+//@Component
 public class Convert<T extends BaseDO> {
     private T tObj;
 
@@ -29,8 +30,6 @@ public class Convert<T extends BaseDO> {
         }
         if (entity instanceof BaseDO) {
             tObj = (T) entity;
-
         }
     }
-
 }
