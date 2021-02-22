@@ -1,15 +1,19 @@
 package top.dj.controller;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import top.dj.POJO.DO.User;
+import top.dj.POJO.DO.UserForAuth;
 import top.dj.POJO.VO.LoginVO;
 import top.dj.POJO.VO.ResTokenVO;
 import top.dj.POJO.VO.ResultVO;
 import top.dj.POJO.VO.UserVO;
 import top.dj.service.LoginService;
+import top.dj.service.UserForAuthService;
 import top.dj.service.UserService;
 import top.dj.utils.RedisUtil;
 
@@ -29,9 +33,13 @@ public class LoginController {
     @Autowired
     private UserService userService;
     @Autowired
+    private UserForAuthService userForAuthService;
+    @Autowired
     private RedisTemplate<String, User> redisTemplate;
     @Autowired
     private RedisUtil redisUtil;
+    /*@Autowired
+    private AuthenticationManager authenticationManager;*/
 
 
     /*@GetMapping("/{id}")
@@ -93,6 +101,12 @@ public class LoginController {
         User user = new User();
         BeanUtils.copyProperties(loginVO, user);
         user = loginService.getUserByLoginInfo(user);
+
+        UserForAuth userForAuth = new UserForAuth();
+        userForAuth.setLoginName(loginVO.getLoginName());
+        Wrapper<UserForAuth> wrapper = new QueryWrapper<>(userForAuth);
+        userForAuthService.getOne(wrapper);
+
         if (user != null) {
             // 登录成功，生成一个UUID做令牌
             String token = UUID.randomUUID().toString();

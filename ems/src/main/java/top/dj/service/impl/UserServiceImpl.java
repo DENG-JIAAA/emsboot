@@ -4,6 +4,12 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import top.dj.POJO.DO.Role;
 import top.dj.POJO.DO.Room;
@@ -25,7 +31,7 @@ import static org.springframework.beans.BeanUtils.copyProperties;
  * @date 2021/1/12
  */
 @Service
-public class UserServiceImpl extends BaseServiceImpl<User> implements UserService {
+public class UserServiceImpl extends BaseServiceImpl<User> implements UserService, UserDetailsService {
     @Autowired
     private UserMapper userMapper;
     @Autowired
@@ -102,5 +108,28 @@ public class UserServiceImpl extends BaseServiceImpl<User> implements UserServic
         dataVO.setCode(1);
         dataVO.setMsg("用户分页数据");
         return dataVO;
+    }
+
+    /**
+     * 方法主要用于从系统数据中查询并加载具体的用户到Spring Security中
+     */
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = new User();
+        user.setLoginName(username);
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+        wrapper.eq("loginName", username);
+        User one = userMapper.selectOne(wrapper);
+        if (one == null) {
+            throw new UsernameNotFoundException("用户名不存在");
+        }
+        List<GrantedAuthority> roleList =
+                AuthorityUtils.commaSeparatedStringToAuthorityList("manager");
+        // 从数据库查出来的user对象，得到登录的用户名和密码，返回。
+        String loginName = one.getLoginName();
+        String loginPwd = one.getLoginPwd();
+        String encodePwd = new BCryptPasswordEncoder().encode(loginPwd);
+        // boolean flag = new BCryptPasswordEncoder().matches("123", "abc");
+        return new org.springframework.security.core.userdetails.User(loginName, encodePwd, roleList);
     }
 }

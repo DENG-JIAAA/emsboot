@@ -1,6 +1,5 @@
 package top.dj.interceptor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -9,9 +8,6 @@ import top.dj.POJO.DO.User;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author dj
@@ -33,20 +29,25 @@ public class TokenInterceptor implements HandlerInterceptor {
      */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        System.out.println("拦截请求");
         /*
             CORS复杂请求时会首先发送一个OPTIONS请求做嗅探，来测试服务器是否支持本次请求，请求成功后才会发送真实的请求
             OPTIONS请求不会携带任何数据（如果不判断，这个OPTIONS请求将被拦截，用户将无法登录）
             SpringMVC对预检请求的处理在preHandle之后（因为预检不携带数据，会被Token拦截器拦截）
             所以需要把所有OPTIONS请求放行
         */
-        if ("OPTIONS".equals(request.getMethod().toUpperCase())) return true;
+        if ("OPTIONS".equals(request.getMethod().toUpperCase())) {
+            System.out.println("放行OPTIONS请求");
+            return true;
+        }
 
-        Map<String, Object> map = new HashMap<>();
+
+        /*Map<String, Object> map = new HashMap<>();
         User user = null;
         // 获取请求头中的令牌
         String token = request.getHeader("token");
         // 验证令牌是否存在
-        if (token != null) {
+        if (StringUtils.hasText(token)) {
             user = redisTemplate.opsForValue().get(token);
         }
 
@@ -63,6 +64,9 @@ public class TokenInterceptor implements HandlerInterceptor {
         String json = new ObjectMapper().writeValueAsString(map);
         response.setContentType("application/json;charset=UTF-8");
         response.getWriter().println(json);
-        return false;
+        return false;*/
+
+
+        return true;
     }
 }
