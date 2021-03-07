@@ -21,7 +21,7 @@ import static org.springframework.beans.BeanUtils.copyProperties;
  * @date 2021/1/12
  */
 @Service
-public class EquipmentServiceImpl extends BaseServiceImpl<Equipment> implements EquipmentService {
+public class EquipmentServiceImpl extends MyServiceImpl<EquipmentMapper, Equipment> implements EquipmentService {
     @Autowired
     private EquipmentMapper equipmentMapper;
     @Autowired
@@ -32,10 +32,6 @@ public class EquipmentServiceImpl extends BaseServiceImpl<Equipment> implements 
     private UserMapper userMapper;
     @Autowired
     private RoomMapper roomMapper;
-
-    public EquipmentServiceImpl() {
-        super(Equipment.class);
-    }
 
     /**
      * 封装以适应前端的 EquVO 单个数据

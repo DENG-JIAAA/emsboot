@@ -8,10 +8,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import top.dj.interceptor.TokenInterceptor;
 
 /**
+ * 拦截器配置类
+ *
  * @author dj
  * @date 2021/2/4
  */
-@Configuration // 拦截器配置类
+@Configuration
 public class MyInterceptorConfig implements WebMvcConfigurer {
 
     /**
@@ -26,7 +28,7 @@ public class MyInterceptorConfig implements WebMvcConfigurer {
     }
 
     /**
-     * 注册登录拦截器
+     * 注册登录拦截器，拦截器着重拦截对 Controller 的请求。（Filter 则为过滤所有 Servlet 请求响应）
      * addPathPatterns -- 拦截的请求
      * excludePathPatterns -- 不拦截，直接放行的请求
      *
@@ -34,8 +36,12 @@ public class MyInterceptorConfig implements WebMvcConfigurer {
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+
         registry.addInterceptor(getTokenInterceptor())
-                .addPathPatterns("/**")//拦截所有请求 token验证
-                .excludePathPatterns("/userLogin"); //除去用户登录的请求
+                // 拦截所有请求 进行 token 验证
+                .addPathPatterns("/**")
+                // 不进行拦截的请求（访问这些接口不需要 token验证）
+                .excludePathPatterns("/login", "/register", "/logout")
+                .excludePathPatterns("/api/homeData");
     }
 }

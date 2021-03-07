@@ -2,6 +2,7 @@ package top.dj.service.impl;
 
 import org.springframework.stereotype.Service;
 import top.dj.POJO.DO.Permission;
+import top.dj.mapper.PermissionMapper;
 import top.dj.service.PermissionService;
 
 /**
@@ -9,8 +10,5 @@ import top.dj.service.PermissionService;
  * @date 2021/1/13
  */
 @Service
-public class PermissionServiceImpl extends BaseServiceImpl<Permission> implements PermissionService {
-    public PermissionServiceImpl() {
-        super(Permission.class);
-    }
+public class PermissionServiceImpl extends MyServiceImpl<PermissionMapper, Permission> implements PermissionService {
 }

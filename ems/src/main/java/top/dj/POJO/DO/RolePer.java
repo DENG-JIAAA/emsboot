@@ -1,26 +1,34 @@
 package top.dj.POJO.DO;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.github.dreamyoung.mprelation.AutoLazy;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 /**
+ * 关联角色 和 权限的实体类
+ *
  * @author dj
- * @date 2021/2/15
+ * @date 2021/3/2
  */
+
 @Data
 @AutoLazy
-//@NoArgsConstructor
-//@AllArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-@TableName("ems_user_role_for_auth")
-// 关联用户 和 角色的实体类
-public class UserRoleForAuth extends BaseDO {
+@NoArgsConstructor
+@AllArgsConstructor
+@TableName("ems_role_per")
+public class RolePer {
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
-    private Integer userId;
+
+    @TableField("role_id")
     private Integer roleId;
+
+    @TableField("per_id")
+    private Integer perId;
+
 }

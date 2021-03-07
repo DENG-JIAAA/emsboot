@@ -2,17 +2,17 @@ package top.dj.POJO.VO;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import top.dj.POJO.DO.Role;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 /**
  * @author dj
  * @date 2021/1/13
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
-public class UserVO extends BaseVO {
+public class UserVO {
     private Integer id;
     private String userRoom; // 用户所负责的教学单位设备库名称
     private String loginName;
@@ -21,7 +21,6 @@ public class UserVO extends BaseVO {
     private Integer userSex;
     private String userPhone;
     private String userEmail;
-    private String userRole; // 用户角色名称
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private Timestamp createTime;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
@@ -31,4 +30,7 @@ public class UserVO extends BaseVO {
     private Integer loginCount;
     private String userPicture;
     private String remark;
+
+    //private List<Role> userRoles;       //用户角色集合
+    private List<Role> authorities;
 }

@@ -1,24 +1,30 @@
 package top.dj.controller;
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import top.dj.POJO.DO.Role;
 import top.dj.POJO.DO.User;
-import top.dj.POJO.DO.UserForAuth;
 import top.dj.POJO.VO.LoginVO;
 import top.dj.POJO.VO.ResTokenVO;
 import top.dj.POJO.VO.ResultVO;
 import top.dj.POJO.VO.UserVO;
 import top.dj.service.LoginService;
-import top.dj.service.UserForAuthService;
 import top.dj.service.UserService;
 import top.dj.utils.RedisUtil;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -26,117 +32,107 @@ import java.util.UUID;
  * @date 2021/1/26
  */
 @RestController
-//@Slf4j
+@RequestMapping
+@Slf4j
 public class LoginController {
     @Autowired
     private LoginService loginService;
     @Autowired
     private UserService userService;
     @Autowired
-    private UserForAuthService userForAuthService;
-    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+    @Resource
     private RedisTemplate<String, User> redisTemplate;
     @Autowired
+    @Qualifier("pwdEncoder")
+    private PasswordEncoder pwdEncoder;
+    @Autowired
     private RedisUtil redisUtil;
-    /*@Autowired
-    private AuthenticationManager authenticationManager;*/
 
-
-    /*@GetMapping("/{id}")
-    public void test(@PathVariable("id") Integer id) {
-        System.out.println("前端登录页面传来的id：" + id);
-    }*/
-
-    /*@GetMapping("/")
-    public void start() {
-        System.out.println("start");
-    }*/
-
-    @GetMapping("/{loginName}/{loginPwd}")
-    public Integer test(@PathVariable("loginName") String loginName,
-                        @PathVariable("loginPwd") String loginPwd) {
-        System.out.println("前端登录页面传来的数据：" + loginName + ", " + loginPwd);
-        User user = new User();
-        user.setLoginName(loginName);
-        user.setLoginPwd(loginPwd);
-        Boolean isExist = loginService.isThisUserExist(user);
-        // 用户存在, 返回---1; 不存在,返回---0
-        return isExist ? 1 : 0;
-    }
-
-    @PostMapping("/login")
-    public ResultVO<Integer> login(@RequestBody LoginVO loginVO) {
+    /**
+     * 处理用户注册
+     */
+    @PostMapping("/register")
+    public ResultVO<Boolean> register(@RequestBody LoginVO loginVO) {
         User user = new User();
         user.setLoginName(loginVO.getLoginName());
-        user.setLoginPwd(loginVO.getLoginPwd());
-        Boolean isExist = loginService.isThisUserExist(user);
-        // 用户存在, 返回---1; 不存在,返回---0
-        ResultVO<Integer> resultVO = new ResultVO<>();
-        resultVO.setCode(20000);
-        resultVO.setData(isExist ? 1 : 0);
-        return resultVO;
-    }
-
-    @PostMapping("/login2")
-    public ResultVO<String> login2(@RequestBody LoginVO loginVO) {
-        System.out.println(loginVO);
-        User user = new User();
-        BeanUtils.copyProperties(loginVO, user);
-        user = loginService.getUserByLoginInfo(user);
-        if (user != null) {
-            // 登录成功，生成一个UUID做令牌
-            String token = UUID.randomUUID().toString();
-            // 将token存入redis
-            redisTemplate.opsForValue().set(token, user, Duration.ofMinutes(30L));
-            return new ResultVO<>(20000, "登录成功", token);
-        }
-        return new ResultVO<>(104, "登录失败", null);
+        // 记得注册的时候把密码加密一下
+        user.setLoginPwd(pwdEncoder.encode(loginVO.getLoginPwd()));
+        user.setAuthorities(new ArrayList<>());
+        boolean save = userService.save(user);
+        return new ResultVO<>(20000, "注册用户", save);
     }
 
     /**
      * 处理用户登录
      */
-    @PostMapping("/userLogin")
-    public ResTokenVO userLogin(@RequestBody LoginVO loginVO) {
-        User user = new User();
-        BeanUtils.copyProperties(loginVO, user);
-        user = loginService.getUserByLoginInfo(user);
+    @PostMapping("/login")
+    public ResTokenVO login(LoginVO loginVO) {
+        log.info("用户名为：" + loginVO.getLoginName() + "正在进行登录操作。");
 
-        UserForAuth userForAuth = new UserForAuth();
-        userForAuth.setLoginName(loginVO.getLoginName());
-        Wrapper<UserForAuth> wrapper = new QueryWrapper<>(userForAuth);
-        userForAuthService.getOne(wrapper);
-
-        if (user != null) {
-            // 登录成功，生成一个UUID做令牌
-            String token = UUID.randomUUID().toString();
-            // 将token存入redis
-            redisTemplate.opsForValue().set(token, user, Duration.ofMinutes(30L));
+        User loginUser = new User();
+        BeanUtils.copyProperties(loginVO, loginUser);
+        loginUser = userService.getOne(new QueryWrapper<>(loginUser));
+        // 登录用户的确存在mysql数据库才 重置redis剩余时间
+        if (loginUser != null) {
+            Set<String> keys = stringRedisTemplate.keys("*");
+            String loginUsername = loginUser.getUsername();
+            String redisUsername;
+            // 默认 redis 中没有当前用户
+            boolean isUserExist = false;
+            // 登录成功，随机生成一个 token 令牌
+            String token = loginUsername + "-" + UUID.randomUUID().toString();
+            if (keys != null) {
+                for (String key : keys) {
+                    String myKey = key.replace("\"", "");
+                    User redisUser = redisTemplate.opsForValue().get(myKey);
+                    redisUsername = redisUser != null ? redisUser.getUsername() : "";
+                    if (loginUsername.equals(redisUsername)) {
+                        // redis 存在当前登录用户
+                        isUserExist = true;
+                        redisTemplate.rename(myKey, token);
+                    }
+                }
+            }
+            // redis 中没有当前登录用户，则需要将 token和user 存入 redis，并且设置时效（1天）
+            if (!isUserExist) redisTemplate.opsForValue().set(token, loginUser, Duration.ofDays(1L));
             // 将token返回前端
             return new ResTokenVO(20000, "登录成功，用户存在。", token);
         }
-        return new ResTokenVO(20004, "登录失败，用户不存在。", null);
+        return new ResTokenVO(200404, "登录失败，用户不存在。", null);
     }
 
     /**
-     * 获取已经登录的原生User信息（DO）
+     * 获取当前登录的原生User信息（DO）
      */
-    @GetMapping("getUserOfLogin1")
-    public ResultVO<User> getUserOfLogin1(HttpServletRequest request) {
+    @GetMapping("/getUserInfo")
+    public ResultVO<User> getUserInfo(HttpServletRequest request) {
         User user = redisTemplate.opsForValue().get(request.getHeader("token"));
-        return new ResultVO<>(20000, "获取登录用户信息成功", user);
+        User one = null;
+        if (user != null) {
+            one = userService.getOne(new QueryWrapper<>(user));
+        }
+        return new ResultVO<>
+                (one != null ? 20000 : 20404, one != null ? "获取登录用户成功" : "获取登录用户失败", one);
     }
 
     /**
-     * 获取已经登录的转换User信息（VO）
+     * 获取当前登录的转换User信息（VO）
      */
-    @GetMapping("getUserOfLogin2")
-    public ResultVO<UserVO> getUserOfLogin2(HttpServletRequest request) {
+    @GetMapping("/getUserVOInfo")
+    public ResultVO<UserVO> getUserVOInfo(HttpServletRequest request) {
         User user = redisTemplate.opsForValue().get(request.getHeader("token"));
         UserVO userVO = null;
         if (user != null) {
             userVO = userService.findUserVO(user.getId());
+            List<Role> roles = userVO.getAuthorities();
+            // 用户权限列表不为空，进行转换。
+            if (roles != null) {
+                roles.forEach(role -> role.setAuthority(role.getAuthority().substring(5)));
+            }
+            user.setAuthorities(roles);
         }
-        return new ResultVO<>(20000, "获取登录用户信息成功", userVO);
+        return new ResultVO<>
+                (userVO != null ? 20000 : 20404, userVO != null ? "获取登录用户成功" : "获取登录用户失败", userVO);
     }
 }

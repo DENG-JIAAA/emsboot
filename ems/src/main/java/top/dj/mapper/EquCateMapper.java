@@ -1,7 +1,8 @@
 package top.dj.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.springframework.stereotype.Repository;
 import top.dj.POJO.DO.EquCate;
 
-public interface EquCateMapper extends BaseMapper<EquCate> {
+@Repository
+public interface EquCateMapper extends MyBaseMapper<EquCate> {
 }

@@ -18,10 +18,9 @@ import java.sql.Timestamp;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = false)
 @TableName("ems_equipment")
 // 设备实体类
-public class Equipment extends BaseDO {
+public class Equipment {
     @TableId(type = IdType.AUTO)
     private Integer id;                     //设备id，自增主键
     private String equCode;                 //设备编号，唯一索引

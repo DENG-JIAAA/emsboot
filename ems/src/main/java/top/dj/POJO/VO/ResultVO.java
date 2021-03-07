@@ -10,7 +10,8 @@ import lombok.Data;
 public class ResultVO<T> {
     /**
      * 响应编码
-     * 20000 - 获取信息成功
+     * 20000 - 操作数据成功
+     * 20404 - 操作数据失败
      * 50014 - 令牌已过期
      * 100 - 请求成功
      * 101 - 请求异常
@@ -27,18 +28,6 @@ public class ResultVO<T> {
     public ResultVO(Integer code, String message, T data) {
         this.code = code;
         this.message = message;
-        this.data = data;
-    }
-
-    public void setCode(Integer code) {
-        this.code = code;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public void setData(T data) {
         this.data = data;
     }
 }

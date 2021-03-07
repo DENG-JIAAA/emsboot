@@ -22,22 +22,26 @@ import java.util.UUID;
  * @date 2021/2/9
  */
 @RestController
-@RequestMapping("/authenticate")
+@RequestMapping("/auth")
 
 public class AuthenticationController {
     private final static ObjectMapper MAPPER = new ObjectMapper();
 
+    // 注入 SpringSecurity 的认证管理器
     @Autowired
-    // SpringSecurity的认证管理器
     private AuthenticationManager authenticationManager;
 
+    /**
+     * 创建 token
+     */
     @PostMapping("/applyToken")
     public JsonNode applyToken(@RequestBody LoginVO loginVO) {
         ObjectNode tokenNode = MAPPER.createObjectNode();
-        // 1、创建UsernamePasswordAuthenticationToken对象
+        // 1、创建 UsernamePasswordAuthenticationToken 对象
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginVO.getLoginName(), loginVO.getLoginPwd());
-        // 2、交给认证管理器进行认证
+        // 2、交给认证管理器 AuthenticationManager 进行认证（实则进行验证的是 AuthenticationProvider）
         Authentication authenticate = authenticationManager.authenticate(authenticationToken);
+
         if (null != authenticate) {
             // 认证成功，生成token返回给前端
             String token = UUID.randomUUID().toString();
@@ -46,7 +50,7 @@ public class AuthenticationController {
             tokenNode.put("token", token);
         } else {
             // 认证失败
-            tokenNode.put("code", 401);
+            tokenNode.put("code", 20004);
             tokenNode.put("message", "登录失败");
         }
         return tokenNode;

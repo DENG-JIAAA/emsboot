@@ -33,18 +33,18 @@ class UserServiceImplTest {
             user.setUserSex(random.nextInt(3) + 1);
             user.setUserPhone((new Random().nextInt(9) + 1) * 10000000000L + i + "");
             user.setUserEmail(str.substring(0, 3) + "@" + str.substring(0, 3).toUpperCase() + ".com");
-            user.setUserRole(random.nextInt(3) + 1);
+            // user.setUserRole(random.nextInt(3) + 1);
             user.setCreateTime(timestamp);
             user.setLoginTime(timestamp);
             user.setLastLoginTime(timestamp);
             user.setLoginCount(1);
-            userService.addOneEntity(user);
+            // userService.addOneEntity(user);
         }
     }
 
     @Test
     void testFindOne() {
-        System.out.println(userService.findEntity(1));
+        /// System.out.println(userService.findEntity(1));
     }
 
     /*@Test

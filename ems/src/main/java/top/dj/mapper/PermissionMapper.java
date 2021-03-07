@@ -1,7 +1,8 @@
 package top.dj.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.springframework.stereotype.Repository;
 import top.dj.POJO.DO.Permission;
 
-public interface PermissionMapper extends BaseMapper<Permission> {
+@Repository
+public interface PermissionMapper extends MyBaseMapper<Permission> {
 }

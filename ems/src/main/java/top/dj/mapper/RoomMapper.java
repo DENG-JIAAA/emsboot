@@ -1,7 +1,8 @@
 package top.dj.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.springframework.stereotype.Repository;
 import top.dj.POJO.DO.Room;
 
-public interface RoomMapper extends BaseMapper<Room> {
+@Repository
+public interface RoomMapper extends MyBaseMapper<Room> {
 }

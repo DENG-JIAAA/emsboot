@@ -4,7 +4,7 @@ import top.dj.POJO.DO.Equipment;
 import top.dj.POJO.VO.DataVO;
 import top.dj.POJO.VO.EquVO;
 
-public interface EquipmentService extends BaseService<Equipment> {
+public interface EquipmentService extends MyIService<Equipment> {
 
     EquVO findEquVO(Integer id);
 

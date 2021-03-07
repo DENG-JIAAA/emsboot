@@ -1,7 +1,8 @@
 package top.dj.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.springframework.stereotype.Repository;
 import top.dj.POJO.DO.Equipment;
 
-public interface EquipmentMapper extends BaseMapper<Equipment> {
+@Repository
+public interface EquipmentMapper extends MyBaseMapper<Equipment> {
 }

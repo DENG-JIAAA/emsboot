@@ -29,7 +29,7 @@ public class EquipmentController extends BaseController<Equipment> {
                                    @PathVariable("limit") Integer limit) {
         return equipmentService.findEquVO(page, limit);
     }*/
-    @GetMapping("/vo/equList")
+    @GetMapping("/vo")
     public ResultVO<DataVO<EquVO>> getEquList(@RequestParam("page") Integer page,
                                               @RequestParam("limit") Integer limit) {
         DataVO<EquVO> equVO = equipmentService.findEquVO(page, limit);

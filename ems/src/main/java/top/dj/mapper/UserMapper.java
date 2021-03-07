@@ -1,9 +1,8 @@
 package top.dj.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Repository;
 import top.dj.POJO.DO.User;
 
-@Primary
-public interface UserMapper extends BaseMapper<User> {
+@Repository
+public interface UserMapper extends MyBaseMapper<User> {
 }

@@ -20,7 +20,18 @@ import java.io.PrintWriter;
  * @date 2021/2/9
  */
 @Component
-public class NoAccessDeniedHandler implements AccessDeniedHandler {
+public class MyAccessDeniedHandler implements AccessDeniedHandler {
+
+    /**
+     * 当一个已登录用户访问了一个没有权限的资源时，SpringSecurity 默认会重定向到一个403页面。
+     * 可以通过自己实现 AccessDeniedHandler 接口然后配置到 SpringSecurity 中来自定义。
+     *
+     * @param request
+     * @param response
+     * @param accessDeniedException
+     * @throws IOException
+     * @throws ServletException
+     */
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
         response.setStatus(HttpStatus.OK.value());
@@ -28,7 +39,7 @@ public class NoAccessDeniedHandler implements AccessDeniedHandler {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode objectNode = mapper.createObjectNode();
         objectNode.put("code", 20003);
-        objectNode.put("message", "访问失败，您没有权限进行此操作。");
+        objectNode.put("message", "访问失败，用户已登录，但您没有权限进行此操作。");
 
         response.setHeader("Content-Type", "application/json;charset=UTF-8");
         String str = mapper.writeValueAsString(objectNode);

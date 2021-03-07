@@ -1,6 +1,10 @@
 package top.dj.service;
 
 import top.dj.POJO.DO.Role;
+import top.dj.POJO.VO.RoleVO;
 
-public interface RoleService extends BaseService<Role>{
+import java.util.List;
+
+public interface RoleService extends MyIService<Role> {
+    public List<RoleVO> getRoleVOS();
 }

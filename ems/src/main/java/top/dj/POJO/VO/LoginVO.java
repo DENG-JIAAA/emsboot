@@ -10,4 +10,12 @@ import lombok.Data;
 public class LoginVO {
     String loginName;
     String loginPwd;
+
+    public LoginVO() {
+    }
+
+    public LoginVO(String loginName, String loginPwd) {
+        this.loginName = loginName;
+        this.loginPwd = loginPwd;
+    }
 }

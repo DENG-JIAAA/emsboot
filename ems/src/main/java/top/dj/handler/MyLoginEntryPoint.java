@@ -20,8 +20,22 @@ import java.io.PrintWriter;
  * @author dj
  * @date 2021/2/9
  */
+
 @Component
-public class UnLoginHandler implements AuthenticationEntryPoint {
+public class MyLoginEntryPoint implements AuthenticationEntryPoint {
+
+    /**
+     * 未登录时访问资源，请求会被 FilterSecurityInterceptor 这个过滤器拦截到，然后抛出异常，
+     * 这个异常会被 ExceptionTranslationFilter 这个过滤器捕获到，
+     * 并最终交给 AuthenticationEntryPoint 接口的 commence 方法处理。
+     * 所以处理办法是自定义一个 AuthenticationEntryPoint 的实现类并配置到 SpringSecurity 中。
+     *
+     * @param request
+     * @param response
+     * @param authException
+     * @throws IOException
+     * @throws ServletException
+     */
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         response.setStatus(HttpStatus.OK.value());
@@ -31,10 +45,10 @@ public class UnLoginHandler implements AuthenticationEntryPoint {
         if (authException instanceof BadCredentialsException) {
             // 账号或密码错误
             objectNode.put("code", 20004);
-            objectNode.put("message", "账号或密码错误，用户不存在。");
+            objectNode.put("message", "账号或密码错误");
         } else {
-            objectNode.put("code", 20004);
-            objectNode.put("message", "未登录或token无效。（未登录用户正在访问受保护的资源）");
+            objectNode.put("code", 20403);
+            objectNode.put("message", "用户未登录（请先完成登录再发起请求访问资源）");
         }
 
         response.setHeader("Content-Type", "application/json;charset=UTF-8");

@@ -1,8 +1,6 @@
 package top.dj.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author dj
@@ -12,18 +10,29 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class ApiController {
 
+    @GetMapping("/homeData")
+    public String homeData() {
+        return "homeData......";
+    }
+
     @GetMapping("/getData")
     public String getData() {
         return "getData......";
     }
 
-    @GetMapping("/addData")
+    @PostMapping("/addData")
     public String addData() {
         return "addData......";
     }
 
-    @GetMapping("/delData")
+    @PutMapping("/updateData")
+    public String updateData() {
+        return "updateData......";
+    }
+
+    @DeleteMapping("/delData")
     public String deleteData() {
         return "delData......";
     }
+
 }

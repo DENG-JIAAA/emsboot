@@ -15,10 +15,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = false)
 @TableName("ems_equ_cate")
 // 设备类别实体类
-public class EquCate extends BaseDO{
+public class EquCate {
     @TableId(type = IdType.AUTO)
     private Integer id; // 类别id
     private String cateName; // 类别名称

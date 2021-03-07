@@ -1,28 +1,31 @@
 package top.dj.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import top.dj.POJO.DO.Role;
-import top.dj.POJO.DO.Room;
-import top.dj.POJO.DO.User;
+import top.dj.POJO.DO.*;
 import top.dj.POJO.VO.DataVO;
 import top.dj.POJO.VO.UserVO;
+import top.dj.component.MyGrantedAuthority;
 import top.dj.mapper.RoleMapper;
 import top.dj.mapper.RoomMapper;
 import top.dj.mapper.UserMapper;
+import top.dj.service.PermissionService;
+import top.dj.service.RoleService;
+import top.dj.service.UserRoleService;
 import top.dj.service.UserService;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serializable;
+import java.util.*;
 
 import static org.springframework.beans.BeanUtils.copyProperties;
 
@@ -31,38 +34,159 @@ import static org.springframework.beans.BeanUtils.copyProperties;
  * @date 2021/1/12
  */
 @Service
-public class UserServiceImpl extends BaseServiceImpl<User> implements UserService, UserDetailsService {
+@Slf4j
+//@Primary
+public class UserServiceImpl extends MyServiceImpl<UserMapper, User> implements UserService, UserDetailsService {
     @Autowired
-    private UserMapper userMapper;
+    private UserService userService;
+    @Autowired
+    private RoleService roleService;
+    @Autowired
+    private PermissionService permissionService;
+    @Autowired
+    private UserRoleService userRoleService;
     @Autowired
     private RoleMapper roleMapper;
     @Autowired
     private RoomMapper roomMapper;
 
-    public UserServiceImpl() {
-        super(User.class);
-    }
-
     /**
      * 通过用户 id 封装以适应前端的 UserVO 单个数据
+     *
+     * @param id
+     * @return
      */
     @Override
     public UserVO findUserVO(Integer id) {
         User user = new User();
         user.setId(id);
-        user = userMapper.selectOne(new QueryWrapper<>(user));
+        user = userService.getOne(new QueryWrapper<>(user));
         return convert(user, new UserVO());
     }
 
     /**
+     * 通过用户名获取一个用户
+     *
+     * @param username
+     * @return
+     */
+    public User loadUser(String username) {
+        User user = new User();
+        user.setLoginName(username);
+        Wrapper<User> wrapper = new QueryWrapper<>(user);
+        return userService.getOne(wrapper);
+    }
+
+    /**
      * 通过用户 登录名 封装以适应前端的 UserVO 单个数据
+     *
+     * @param loginName
+     * @return
      */
     @Override
     public UserVO findUserVO(String loginName) {
         User user = new User();
         user.setLoginName(loginName);
-        user = userMapper.selectOne(new QueryWrapper<>(user));
+        user = userService.getOne(new QueryWrapper<>(user));
         return convert(user, new UserVO());
+    }
+
+    /**
+     * 更新 user 数据
+     *
+     * @param user
+     * @return
+     */
+    @Override
+    public boolean updateById(User user) {
+        // 设置一些基本数据
+        String remark = user.getRemark();
+        Integer userId = user.getId();
+        user.setRemark(remark.substring(0, remark.indexOf("_")));
+
+        // 如果修改用户失败，直接返回false
+        if (super.getBaseMapper().updateById(user) != 1) return false;
+
+        // 前端传来的用户角色列表为空，执行清空逻辑即可。
+        List<Integer> roleIDList = getUserRoleIDs(remark);
+        if (roleIDList.isEmpty()) return removeUserRole(userId);
+
+        // 封装需要更改的用户角色列表
+        List<UserRole> userRoleList = new ArrayList<>();
+        roleIDList.forEach(roleID -> userRoleList.add(new UserRole(null, userId, roleID)));
+
+        // 修改指定用户的角色列表，先把用户角色对应关系全部移除
+        boolean remove = removeUserRole(userId);
+        boolean save = true;
+        // 移除完成后，生成新的用户角色对应关系。
+        if (remove) save = userRoleService.saveBatch(userRoleList);
+        return remove && save;
+    }
+
+    /**
+     * 获取用户携带的 角色ID列表
+     *
+     * @param remark
+     * @return
+     */
+    public List<Integer> getUserRoleIDs(String remark) {
+        String string = remark.substring(remark.indexOf("_") + 1);
+        String[] strings = string.split(",");
+        List<String> roleNameList = new ArrayList<>(Arrays.asList(strings));
+        List<Integer> roleIDList = new ArrayList<>();
+        if (!roleNameList.isEmpty()) {
+            Role role = new Role();
+            roleNameList.forEach(roleName -> {
+                role.setRoleName("ROLE_" + roleName);
+                Role one = roleService.getOne(new QueryWrapper<>(role));
+                roleIDList.add(one.getId());
+            });
+        }
+        return roleIDList;
+    }
+
+
+    /**
+     * 添加 user 数据
+     *
+     * @param user
+     * @return
+     */
+    @Override
+    public boolean save(User user) {
+        // 添加用户
+        String remark = user.getRemark();
+        user.setRemark(remark.substring(0, remark.indexOf("_")));
+        if (super.getBaseMapper().insert(user) != 1) return false;
+
+        // 获取用户角色ID
+        List<Integer> roleIDList = getUserRoleIDs(remark);
+
+        // 添加用户角色列表
+        if (roleIDList.isEmpty()) return true;
+        List<UserRole> userRoleList = new ArrayList<>();
+        roleIDList.forEach(roleID -> userRoleList.add(new UserRole(null, user.getId(), roleID)));
+        return userRoleService.saveBatch(userRoleList);
+    }
+
+    @Override
+    public boolean removeById(Serializable userId) {
+        removeUserRole((Integer) userId);
+        return super.getBaseMapper().deleteById(userId) == 1;
+    }
+
+    /**
+     * 清空对应用户的 角色列表
+     *
+     * @param userId
+     * @return
+     */
+    public boolean removeUserRole(Integer userId) {
+        UserRole userRole = new UserRole(null, userId, null);
+        Wrapper<UserRole> wrapper = new QueryWrapper<>(userRole);
+        boolean empty = userRoleService.list(wrapper).isEmpty();
+        if (empty) return true;
+        return userRoleService.remove(wrapper);
     }
 
     /**
@@ -70,28 +194,64 @@ public class UserServiceImpl extends BaseServiceImpl<User> implements UserServic
      */
     @Override
     public DataVO<UserVO> findUserVO(Integer page, Integer limit) {
-        IPage<User> userPage = userMapper.selectPage(new Page<>(page, limit), null);
-        return convert(userPage, new DataVO<>());
+        IPage<User> userPage = userService.page(new Page<>(page, limit));
+
+        List<User> rawRecords = userPage.getRecords();
+        List<User> retRecords = new ArrayList<>();
+
+        for (User record : rawRecords) {
+            User one = userService.getOne(new QueryWrapper<>(record));
+            retRecords.add(one);
+        }
+        return convert(userPage.setRecords(retRecords), new DataVO<>());
     }
 
-    // 将单个 DO 转换为前端适应的 VO
+    /**
+     * 将单个 DO 转换为前端适应的 VO
+     *
+     * @param user
+     * @param userVO
+     * @return
+     */
     public UserVO convert(User user, UserVO userVO) {
+        if (user == null) return null;
+
         Room room = new Room();
-        Role role = new Role();
         // 将 相同的属性拷贝过来
         copyProperties(user, userVO);
-        // 设置 用户管理的设备库名称
+
+        // 设置 userVO 管理的设备库名称
         room.setId(user.getUserRoom());
         room = roomMapper.selectOne(new QueryWrapper<>(room));
         if (room != null) userVO.setUserRoom(room.getRoomName());
+
+        // 设置 userVO 的角色列表
+        Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
+        List<Role> userVORoles = new ArrayList<>();
+        Role userRole = new Role();
+        for (GrantedAuthority authority : authorities) {
+            userRole.setRoleName(authority.toString());
+            Wrapper<Role> wrapper = new QueryWrapper<>(userRole);
+            Role one = roleMapper.selectOne(wrapper);
+            // 设置 userVO 的角色列表
+            userVORoles.add(one);
+        }
+        userVO.setAuthorities(userVORoles);
+
         // 设置 用户的角色名称
-        role.setId(user.getUserRole());
-        role = roleMapper.selectOne(new QueryWrapper<>(role));
-        if (role != null) userVO.setUserRole(role.getRoleName());
+//        role.setId(user.getUserRole());
+//        role = roleMapper.selectOne(new QueryWrapper<>(role));
+//        if (role != null) userVO.setUserRole(role.getRoleName());
         return userVO;
     }
 
-    // 将列表DO 转换为前端适应的 列表VO
+    /**
+     * 将列表DO 转换为前端适应的 列表VO
+     *
+     * @param userPage
+     * @param dataVO
+     * @return
+     */
     public DataVO<UserVO> convert(IPage<User> userPage, DataVO<UserVO> dataVO) {
         List<User> userList = userPage.getRecords();
         List<UserVO> voList = new ArrayList<>();
@@ -115,21 +275,27 @@ public class UserServiceImpl extends BaseServiceImpl<User> implements UserServic
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = new User();
-        user.setLoginName(username);
-        QueryWrapper<User> wrapper = new QueryWrapper<>();
-        wrapper.eq("loginName", username);
-        User one = userMapper.selectOne(wrapper);
-        if (one == null) {
-            throw new UsernameNotFoundException("用户名不存在");
+        // 使用唯一用户名查询用户信息，此查询为联合查询，查出的用户包含有权限信息。
+        User user = loadUser(username);
+        // 判断用户是否存在
+        if (user != null) {
+            Collection<? extends GrantedAuthority> roles = user.getAuthorities();
+            // 将用户的角色和权限全部加载到 allAuth 中来
+            Collection<GrantedAuthority> allAuth = new HashSet<>();
+            for (GrantedAuthority role : roles) {
+                allAuth.add(new SimpleGrantedAuthority(role.getAuthority()));
+                Role oneRole = roleService.getOne(new QueryWrapper<>(new Role(role.getAuthority())));
+                List<Permission> permissions = oneRole.getRolePers();
+                for (Permission per : permissions) {
+                    if (per != null && per.getAuthority() != null)
+                        allAuth.add(new MyGrantedAuthority(per.getPerUrl(), per.getPerMethod()));
+                }
+            }
+            // 返回 UserDetails 实现类
+            return new org.springframework.security.core.userdetails
+                    .User(user.getUsername(), user.getPassword(), allAuth);
+        } else {
+            throw new UsernameNotFoundException("loadUserByUsername --> 用户名：" + username + "不存在");
         }
-        List<GrantedAuthority> roleList =
-                AuthorityUtils.commaSeparatedStringToAuthorityList("manager");
-        // 从数据库查出来的user对象，得到登录的用户名和密码，返回。
-        String loginName = one.getLoginName();
-        String loginPwd = one.getLoginPwd();
-        String encodePwd = new BCryptPasswordEncoder().encode(loginPwd);
-        // boolean flag = new BCryptPasswordEncoder().matches("123", "abc");
-        return new org.springframework.security.core.userdetails.User(loginName, encodePwd, roleList);
     }
 }

@@ -2,6 +2,7 @@ package top.dj.service.impl;
 
 import org.springframework.stereotype.Service;
 import top.dj.POJO.DO.EquCate;
+import top.dj.mapper.EquCateMapper;
 import top.dj.service.EquCateService;
 
 /**
@@ -9,8 +10,5 @@ import top.dj.service.EquCateService;
  * @date 2021/1/20
  */
 @Service
-public class EquCateServiceImpl extends BaseServiceImpl<EquCate> implements EquCateService {
-    public EquCateServiceImpl() {
-        super(EquCate.class);
-    }
+public class EquCateServiceImpl extends MyServiceImpl<EquCateMapper, EquCate> implements EquCateService {
 }
