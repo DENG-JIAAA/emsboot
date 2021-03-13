@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 /**
  * @author dj
  * @date 2021/3/6
@@ -14,7 +16,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("ems_per_meta")
-public class Meta {
+public class Meta implements Serializable {
+    private static final long serialVersionUID = -9044594885003516014L;
     private Integer id;
     private String title;
     private String icon;

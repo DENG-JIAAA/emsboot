@@ -4,13 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import top.dj.POJO.DO.User;
-import top.dj.POJO.VO.DataVO;
-import top.dj.POJO.VO.ResultVO;
-import top.dj.POJO.VO.UserVO;
+import top.dj.POJO.VO.*;
 import top.dj.mapper.UserMapper;
 import top.dj.service.UserService;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author dj
@@ -42,18 +41,33 @@ public class UserController extends BaseController<User> {
     /**
      * 设置 Token拦截器后，前端Promise先异步请求前端API，前端API再发送request调用后端接口。
      * 目的是在前端 Request之前带上token，防止被拦截。
+     * 管理员user正在访问此接口，应该返回user管理的这个实践室的所有管理员。
+     * 如果是超级管理员在进行访问，应该返回所有用户管理员。
      *
      * @param page  第几页
      * @param limit 多少条数据
      * @return 将查到的原生user转换再封装
      */
     @GetMapping("/vo")
-    public ResultVO<DataVO<UserVO>> getUserList(@RequestParam("page") Integer page,
+    public ResultVO<DataVO<UserVO>> getUserList(HttpServletRequest request,
+                                                @RequestParam("page") Integer page,
                                                 @RequestParam("limit") Integer limit) {
-        DataVO<UserVO> userVO = userService.findUserVO(page, limit);
+
+        User user = redisTemplate.opsForValue().get(request.getHeader("token"));
+        DataVO<UserVO> userVO = userService.findUserVO(page, limit, user);
         boolean OK = userVO != null;
         return new ResultVO<>
                 (OK ? 20000 : 20404, OK ? "获取用户列表成功" : "获取用户列表失败", userVO);
+    }
+
+    @GetMapping("/vo/query")
+    public ResultVO<DataVO<UserVO>> fetchUserListByQuery(HttpServletRequest request, UserQueryVO userQueryVO) {
+
+        User user = redisTemplate.opsForValue().get(request.getHeader("token"));
+        DataVO<UserVO> userVO = userService.fetchUserListByQuery(user, userQueryVO);
+        boolean OK = userVO != null;
+        return new ResultVO<>
+                (OK ? 20000 : 20404, OK ? "获取用户条件查询列表成功" : "获取用户条件查询列表失败", userVO);
     }
 
     @PutMapping("/modifyProfile")

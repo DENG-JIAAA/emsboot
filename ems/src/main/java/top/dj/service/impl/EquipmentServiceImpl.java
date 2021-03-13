@@ -1,16 +1,20 @@
 package top.dj.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import top.dj.POJO.DO.*;
+import top.dj.POJO.VO.ApplyInfo;
 import top.dj.POJO.VO.DataVO;
+import top.dj.POJO.VO.EquQueryVO;
 import top.dj.POJO.VO.EquVO;
 import top.dj.mapper.*;
 import top.dj.service.EquipmentService;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +35,11 @@ public class EquipmentServiceImpl extends MyServiceImpl<EquipmentMapper, Equipme
     @Autowired
     private UserMapper userMapper;
     @Autowired
+    private UserServiceImpl userServiceImpl;
+    @Autowired
     private RoomMapper roomMapper;
+    @Autowired
+    private EquApprovalMapper equApprovalMapper;
 
     /**
      * 封装以适应前端的 EquVO 单个数据
@@ -48,10 +56,71 @@ public class EquipmentServiceImpl extends MyServiceImpl<EquipmentMapper, Equipme
      * 封装以适应前端的 EquVO 分页数据
      */
     @Override
-    public DataVO<EquVO> findEquVO(Integer page, Integer limit) {
-        IPage<Equipment> equPage = equipmentMapper.selectPage(new Page<>(page, limit), null);
+    public DataVO<EquVO> findEquVO(Integer page, Integer limit, User nowUser) {
+        Integer roomId = userServiceImpl.getRoomIdIfNoSuper(nowUser);
+        Wrapper<Equipment> wrapper = new QueryWrapper<>(new Equipment(null, roomId));
+        IPage<Equipment> equPage = equipmentMapper.selectPage(new Page<>(page, limit), wrapper);
         return convert(equPage, new DataVO<>());
     }
+
+    @Override
+    public DataVO<EquVO> fetchEquListByQuery(User nowUser, EquQueryVO equQueryVO) {
+        Integer roomId = userServiceImpl.getRoomIdIfNoSuper(nowUser);
+        Integer page = equQueryVO.getPage();
+        Integer limit = equQueryVO.getLimit();
+        String equName = equQueryVO.getEquName();
+        equQueryVO.setEquName("".equals(equName) ? null : equName);
+
+        Equipment equipment = new Equipment();
+        copyProperties(equQueryVO, equipment);
+        // 说明 非超级管理员 正在请求，设置他的请求范围只在他管理的实践室
+        if (roomId != null) {
+            equipment.setEquRoom(roomId);
+        }
+        // 超级管理员请求，看传过来的实践室id进行返回。
+
+        Wrapper<Equipment> wrapper = new QueryWrapper<>(equipment);
+        IPage<Equipment> equPage = equipmentMapper.selectPage(new Page<>(page, limit), wrapper);
+
+        return convert(equPage, new DataVO<>());
+    }
+
+    @Override
+    public Boolean applyForUseEquipment(Integer userId, Integer equId) {
+        Equipment equipment = equipmentMapper.selectById(equId);
+        equipment.setEquState(7);
+        return equipmentMapper.updateById(equipment) == 1;
+    }
+
+    /**
+     * 用户申请使用设备信息
+     *
+     * @param applyInfo 申请信息
+     * @return
+     */
+    @Override
+    public Boolean applyForUseEquipment(ApplyInfo applyInfo) {
+        // 生成一条申请记录
+        EquApproval approval = new EquApproval();
+        copyProperties(applyInfo, approval);
+        approval
+                // 设置发出申请的时间（当前时间）
+                .setApprovalTime(new Timestamp(System.currentTimeMillis()))
+                // 设置申请使用设备的时间（申请人指定）
+                .setEquUseTime(new Timestamp(applyInfo.getEquUseTime()))
+                // 设置当前申请的状态（默认为：待审核）
+                .setApprovalStatusId(1);
+
+        // 设备库存 减 申请使用的设备数量
+        Equipment e = equipmentMapper.selectById(applyInfo.getEquId());
+        e.setEquQuantity(e.getEquQuantity() - applyInfo.getEquQuantity());
+        int update = equipmentMapper.updateById(e);
+
+        // 记录此次申请
+        int record = equApprovalMapper.insert(approval);
+        return update == 1 && record == 1;
+    }
+
 
     // 将单个 DO 转换为前端适应的 VO
     public EquVO convert(Equipment equ, EquVO equVO) {

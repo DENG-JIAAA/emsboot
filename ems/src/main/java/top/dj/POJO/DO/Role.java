@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.*;
 import com.github.dreamyoung.mprelation.*;
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import top.dj.mapper.RolePerMapper;
 import top.dj.mapper.UserRoleMapper;
@@ -15,12 +16,15 @@ import java.sql.Timestamp;
 import java.util.List;
 
 /**
+ * 角色实体类
+ *
  * @author dj
  * @date 2021/1/13
  */
 @AutoLazy
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@AllArgsConstructor
 @TableName("ems_role")
 // 角色实体类
 public class Role implements GrantedAuthority, Serializable {
@@ -59,16 +63,6 @@ public class Role implements GrantedAuthority, Serializable {
 
     public Role(String roleName) {
         this.roleName = roleName;
-    }
-
-    public Role(Integer id, String roleName, String roleNameZh, Timestamp roleCreateTime, String roleDescription, List<User> roleUsers, List<Permission> rolePers) {
-        this.id = id;
-        this.roleName = roleName;
-        this.roleNameZh = roleNameZh;
-        this.roleCreateTime = roleCreateTime;
-        this.roleDescription = roleDescription;
-        this.roleUsers = roleUsers;
-        this.rolePers = rolePers;
     }
 
     @Override

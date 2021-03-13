@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 /**
  * 关联角色 和 权限的实体类
  *
@@ -21,7 +23,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("ems_role_per")
-public class RolePer {
+public class RolePer implements Serializable {
+    private static final long serialVersionUID = -5775812728219616277L;
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 

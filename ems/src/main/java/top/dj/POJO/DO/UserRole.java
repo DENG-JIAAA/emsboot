@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 /**
  * 关联用户 和 角色的实体类
  *
@@ -19,7 +21,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("ems_user_role")
-public class UserRole {
+public class UserRole implements Serializable {
+    private static final long serialVersionUID = -6007984346633104125L;
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 

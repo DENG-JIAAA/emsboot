@@ -14,6 +14,7 @@ import java.util.List;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Menu implements Serializable {
+    private static final long serialVersionUID = -7084934955924830343L;
     private Integer id;
     private Integer pId;
     private String name;

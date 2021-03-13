@@ -1,15 +1,19 @@
 package top.dj.service;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.dreamyoung.mprelation.AutoMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import top.dj.POJO.DO.Equipment;
 import top.dj.POJO.DO.Permission;
 import top.dj.POJO.DO.Role;
 import top.dj.POJO.DO.User;
 import top.dj.component.MyGrantedAuthority;
+import top.dj.mapper.EquipmentMapper;
 import top.dj.mapper.UserMapper;
 
 import java.util.Collection;
@@ -32,6 +36,14 @@ public class UserServiceTest {
     private UserMapper userMapper;
     @Autowired
     private UserRoleService userRoleService;
+    @Autowired
+    private RoomService roomService;
+    @Autowired
+    private EquipmentService equipmentService;
+    @Autowired
+    private EquipmentMapper equipmentMapper;
+    @Autowired
+    private AutoMapper autoMapper;
 
     @Test
     void test01() {
@@ -116,7 +128,7 @@ public class UserServiceTest {
             List<Permission> permissions = oneRole.getRolePers();
             System.out.println("oneRole = " + oneRole);
             for (Permission per : permissions) {
-                if (per != null && per.getAuthority() != null){
+                if (per != null && per.getAuthority() != null) {
                     GrantedAuthority grantedAuthority = new MyGrantedAuthority(per.getPerUrl(), per.getPerMethod());
                     allAuth.add(grantedAuthority);
                 }
@@ -138,5 +150,38 @@ public class UserServiceTest {
 
     @Test
     void test09() {
+    }
+
+    @Test
+    void test10() {
+        User user = new User();
+        user.setUserRoom(3);
+        System.out.println("实践室C所有管理员---------------------------------->>");
+        List<User> admins = userMapper.selectList(new QueryWrapper<>(user));
+        for (User admin : admins) {
+            System.out.println("admin = " + admin);
+        }
+
+        Equipment equipment = new Equipment();
+        equipment.setEquRoom(3);
+        System.out.println("实践室C所有的设备---------------------------------->>");
+        List<Equipment> equs = equipmentMapper.selectList(new QueryWrapper<>(equipment));
+        for (Equipment equ : equs) {
+            System.out.println("equ = " + equ);
+        }
+    }
+
+    @Test
+    void test11() {
+        Role role = new Role(1);
+
+        Wrapper<Role> wrapper = new QueryWrapper<>(role);
+        Role one = roleService.getOne(wrapper);
+
+        List<User> users = one.getRoleUsers();
+        for (User user : users) {
+            User entity = autoMapper.mapperEntity(user);
+            System.out.println("entity = " + entity);
+        }
     }
 }

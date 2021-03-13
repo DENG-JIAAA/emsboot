@@ -38,7 +38,7 @@
 //        System.out.println(one);
 ////        System.out.println(one.getAuthorities());
 //    }
-//
+//autoMapper
 //    @Test
 //    void test03() {
 //        UserForAuth user = new UserForAuth();

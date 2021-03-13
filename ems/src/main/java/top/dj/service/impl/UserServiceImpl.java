@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import top.dj.POJO.DO.*;
 import top.dj.POJO.VO.DataVO;
+import top.dj.POJO.VO.UserQueryVO;
 import top.dj.POJO.VO.UserVO;
 import top.dj.component.MyGrantedAuthority;
 import top.dj.mapper.RoleMapper;
@@ -37,6 +38,8 @@ import static org.springframework.beans.BeanUtils.copyProperties;
 @Slf4j
 //@Primary
 public class UserServiceImpl extends MyServiceImpl<UserMapper, User> implements UserService, UserDetailsService {
+    @Autowired
+    private UserMapper userMapper;
     @Autowired
     private UserService userService;
     @Autowired
@@ -193,8 +196,11 @@ public class UserServiceImpl extends MyServiceImpl<UserMapper, User> implements 
      * 封装以适应前端的 UserVO 分页数据
      */
     @Override
-    public DataVO<UserVO> findUserVO(Integer page, Integer limit) {
-        IPage<User> userPage = userService.page(new Page<>(page, limit));
+    public DataVO<UserVO> findUserVO(Integer page, Integer limit, User nowUser) {
+        Integer roomId = getRoomIdIfNoSuper(nowUser);
+        Wrapper<User> wrapper = new QueryWrapper<>(new User(null, roomId));
+        User user = new User();
+        IPage<User> userPage = userService.page(new Page<>(page, limit), wrapper);
 
         List<User> rawRecords = userPage.getRecords();
         List<User> retRecords = new ArrayList<>();
@@ -204,6 +210,102 @@ public class UserServiceImpl extends MyServiceImpl<UserMapper, User> implements 
             retRecords.add(one);
         }
         return convert(userPage.setRecords(retRecords), new DataVO<>());
+    }
+
+    @Override
+    public DataVO<UserVO> fetchUserListByQuery(User nowUser, UserQueryVO userQueryVO) {
+        Integer roomId = getRoomIdIfNoSuper(nowUser);
+
+        Integer page = userQueryVO.getPage();
+        Integer limit = userQueryVO.getLimit();
+        Integer roleId = userQueryVO.getUserRole();
+        Integer room = userQueryVO.getUserRoom();
+        String name = userQueryVO.getRealName();
+        userQueryVO.setRealName("".equals(name) ? null : name);
+        name = userQueryVO.getRealName();
+
+        // 设置 角色条件
+        Role setRole = roleService.getById(roleId);
+        List<User> roleUsers = new ArrayList<>();
+        List<User> queryUsers = new ArrayList<>();
+
+        // 前端没有设置角色
+        if (setRole == null) {
+            User user = new User();
+            copyProperties(userQueryVO, user);
+            if (roomId != null) user.setUserRoom(roomId);
+            queryUsers = userMapper.selectList(new QueryWrapper<>(user));
+        } else {
+            // 前端设置了角色
+            roleUsers = setRole.getRoleUsers();
+            List<User> users;
+            if (roomId != null) {
+                // 不是超级管理员
+                users = new ArrayList<>();
+                roleUsers.forEach(user -> {
+                    Integer dbRoom = user.getUserRoom();
+                    if (dbRoom.equals(roomId)) {
+                        users.add(user);
+                    }
+                });
+                roleUsers = users;
+            }
+            // 查询出当前角色负责设备库的所有满足条件的用户
+            for (User roleUser : roleUsers) {
+                boolean roomOk = true;
+                boolean nameOk = true;
+                if (room != null)
+                    roomOk = roleUser.getUserRoom().equals(room);
+                if (name != null) {
+                    nameOk = roleUser.getRealName().equals(name);
+                    if (nameOk && roomOk) queryUsers.add(roleUser);
+                } else if (roomOk) queryUsers.add(roleUser);
+            }
+        }
+
+        List<User> userList = new ArrayList<>();
+        for (User queryUser : queryUsers) {
+            User entity = autoMapper.mapperEntity(queryUser);
+            userList.add(entity);
+        }
+
+        IPage<User> userPage = new Page<>();
+        List<User> onePageUserList = new ArrayList<>();
+
+        int total = userList.size();
+        int pages = (int) (Math.ceil(total / limit.floatValue()));
+        page = page > pages ? pages : page;
+        int pl = page * limit;
+        // 查询总数大于等于限制数，需要返回分页结果。
+        if (total >= limit) {
+            for (int i = pl - limit; i < total && i < pl; i++) {
+                onePageUserList.add(userList.get(i));
+            }
+        }
+        userPage
+                .setPages(pages)
+                .setRecords(onePageUserList.isEmpty() ? userList : onePageUserList)
+                .setCurrent(page)
+                .setSize(limit)
+                .setTotal(userList.size());
+        return convert(userPage, new DataVO<>());
+    }
+
+
+    protected Integer getRoomIdIfNoSuper(User user) {
+        Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
+        boolean hasSuper = false;
+        Integer roomId = user.getUserRoom();
+        if (authorities != null) {
+            for (GrantedAuthority authority : authorities) {
+                if ("ROLE_SUPERADMIN".equals(authority.getAuthority())) {
+                    hasSuper = true;
+                    roomId = null;
+                    break;
+                }
+            }
+        }
+        return roomId;
     }
 
     /**
@@ -226,6 +328,7 @@ public class UserServiceImpl extends MyServiceImpl<UserMapper, User> implements 
         if (room != null) userVO.setUserRoom(room.getRoomName());
 
         // 设置 userVO 的角色列表
+        // 如果 userVO 的角色列表不存在（未设置角色情况下）
         Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
         List<Role> userVORoles = new ArrayList<>();
         Role userRole = new Role();
@@ -237,11 +340,6 @@ public class UserServiceImpl extends MyServiceImpl<UserMapper, User> implements 
             userVORoles.add(one);
         }
         userVO.setAuthorities(userVORoles);
-
-        // 设置 用户的角色名称
-//        role.setId(user.getUserRole());
-//        role = roleMapper.selectOne(new QueryWrapper<>(role));
-//        if (role != null) userVO.setUserRole(role.getRoleName());
         return userVO;
     }
 

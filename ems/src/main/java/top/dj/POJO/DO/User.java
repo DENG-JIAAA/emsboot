@@ -87,6 +87,11 @@ public class User implements UserDetails, Serializable {
         this.id = id;
     }
 
+    public User(Integer id, Integer userRoom) {
+        this.id = id;
+        this.userRoom = userRoom;
+    }
+
     public User(Integer id, Integer userRoom, String loginName, String loginPwd, String realName, Integer userSex, String userPhone, String userEmail, Timestamp createTime, Timestamp loginTime, Timestamp lastLoginTime, Integer loginCount, String userPicture, String remark, List<Role> authorities) {
         this.id = id;
         this.userRoom = userRoom;

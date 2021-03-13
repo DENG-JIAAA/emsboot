@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 /**
  * @author dj
  * @date 2021/1/13
@@ -16,7 +18,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @TableName("ems_room")
 // 实践室实体类
-public class Room {
+public class Room implements Serializable {
+    private static final long serialVersionUID = -3981882470218592308L;
     @TableId(type = IdType.AUTO)
     private Integer id;             // 实践室id
     private String roomName;        // 实践室名字
