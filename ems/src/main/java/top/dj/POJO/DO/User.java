@@ -15,6 +15,7 @@ import top.dj.mapper.UserRoleMapper;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -78,7 +79,7 @@ public class User implements UserDetails, Serializable {
     //@JsonIgnore
     //@JsonDeserialize
     @TableField(exist = false)
-    private List<Role> authorities;       //用户角色集合
+    private List<Role> authorities = new ArrayList<>();       //用户角色集合
 
     public User() {
     }

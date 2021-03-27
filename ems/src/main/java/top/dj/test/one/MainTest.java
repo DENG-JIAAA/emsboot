@@ -8,6 +8,11 @@ import java.text.ParseException;
  */
 public class MainTest {
     public static void main(String[] args) throws ParseException {
+        Integer integer = 10;
+        Integer integer1 = null;
+        System.out.println("integer.equals(integer1) = " + integer.equals(integer1));
+
+        System.out.println("integer1.equals(integer) = " + integer1.equals(integer));
 
     }
 }

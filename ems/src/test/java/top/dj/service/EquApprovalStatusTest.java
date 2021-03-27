@@ -8,15 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import top.dj.POJO.DO.EquApproval;
 import top.dj.POJO.DO.Equipment;
-import top.dj.POJO.VO.ApplyInfo;
 import top.dj.mapper.EquApprovalMapper;
 import top.dj.mapper.EquApprovalStatusMapper;
 import top.dj.mapper.EquipmentMapper;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.springframework.beans.BeanUtils.copyProperties;
 
 /**
  * @author dj
@@ -47,14 +44,14 @@ public class EquApprovalStatusTest {
         System.out.println("equipmentService.getById(1) = " + equipmentService.getById(6));
     }
 
-    @Test
+    /*@Test
     void test02() {
         ApplyInfo info = new ApplyInfo(1, 10, 1000, 4, System.currentTimeMillis(), "申请使用设备的备注信息");
         EquApproval approval = new EquApproval();
         copyProperties(info, approval);
 
         System.out.println("approval = " + approval);
-    }
+    }*/
 
     @Test
     void test03() {

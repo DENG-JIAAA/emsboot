@@ -1,9 +1,6 @@
 package top.dj.POJO.DO;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.github.dreamyoung.mprelation.AutoLazy;
 import lombok.AllArgsConstructor;
@@ -34,17 +31,29 @@ public class EquApproval implements Serializable {
     @TableField("equ_quantity")
     private Integer equQuantity;
 
+    @TableField("equ_use_cate")
+    private Integer equUseCate;//借用的设备将用于什么方向？
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private Timestamp approvalTime;//用户发出申请的时间
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private Timestamp equUseTime;//申请使用设备的时间
 
+    @TableField("equ_day")
+    private Integer equDay;//使用设备的时间（最长31天）
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private Timestamp equReturnTime;//返还使用设备的时间
 
     @TableField("approval_status_id")
     private Integer approvalStatusId;
+
+    @TableField("parent_id")
+    private Integer parentId;
+
+    @TableField("remark")
+    private String remark;
 
     public EquApproval() {
     }
@@ -65,10 +74,14 @@ public class EquApproval implements Serializable {
                 ", userId=" + userId +
                 ", equId=" + equId +
                 ", equQuantity=" + equQuantity +
+                ", equUseCate=" + equUseCate +
                 ", approvalTime=" + approvalTime +
                 ", equUseTime=" + equUseTime +
+                ", equDay=" + equDay +
                 ", equReturnTime=" + equReturnTime +
                 ", approvalStatusId=" + approvalStatusId +
+                ", parentId=" + parentId +
+                ", remark='" + remark + '\'' +
                 '}';
     }
 
@@ -104,6 +117,14 @@ public class EquApproval implements Serializable {
         this.equQuantity = equQuantity;
     }
 
+    public Integer getEquUseCate() {
+        return equUseCate;
+    }
+
+    public void setEquUseCate(Integer equUseCate) {
+        this.equUseCate = equUseCate;
+    }
+
     public Timestamp getApprovalTime() {
         return approvalTime;
     }
@@ -122,6 +143,14 @@ public class EquApproval implements Serializable {
         return this;
     }
 
+    public Integer getEquDay() {
+        return equDay;
+    }
+
+    public void setEquDay(Integer equDay) {
+        this.equDay = equDay;
+    }
+
     public Timestamp getEquReturnTime() {
         return equReturnTime;
     }
@@ -136,5 +165,21 @@ public class EquApproval implements Serializable {
 
     public void setApprovalStatusId(Integer approvalStatusId) {
         this.approvalStatusId = approvalStatusId;
+    }
+
+    public Integer getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Integer parentId) {
+        this.parentId = parentId;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
     }
 }

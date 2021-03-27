@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -18,7 +17,6 @@ import java.io.Serializable;
  */
 @Data
 //@AutoLazy
-@NoArgsConstructor
 @AllArgsConstructor
 @TableName("ems_user_role")
 public class UserRole implements Serializable {
@@ -31,4 +29,12 @@ public class UserRole implements Serializable {
 
     @TableField("role_id")
     private Integer roleId;
+
+    public UserRole() {
+    }
+
+    public UserRole(Integer userId, Integer roleId) {
+        this.userId = userId;
+        this.roleId = roleId;
+    }
 }

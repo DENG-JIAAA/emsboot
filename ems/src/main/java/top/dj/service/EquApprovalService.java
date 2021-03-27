@@ -21,11 +21,35 @@ public interface EquApprovalService extends MyIService<EquApproval> {
 
     List<EquApprovalVO> getUsingEqu(HttpServletRequest request);
 
+    Boolean returnOneEquipment(Integer appId);
+
     List<EquApprovalVO> getReturnedEqu(HttpServletRequest request);
+
+    List<EquApprovalVO> getStoredEqu(HttpServletRequest request);
+
+    List<EquApprovalVO> getScrappedEqu(HttpServletRequest request);
 
     EquApproval show(Integer appId);
 
     Boolean pass(Integer appId);
 
+    Boolean startUseEquipment(Integer appId);
+
     Boolean reject(Integer appId);
+
+    Boolean reApplyUseEquipment(Integer appId);
+
+    Boolean cancelApplication(Integer appId);
+
+    Boolean storeReturnedEqu(Integer appId);
+
+    Boolean storePartReturnedEqu(Integer appId, Integer num);
+
+    Boolean maintainReturnedEqu(Integer appId);
+
+    Boolean scrapReturnedEqu(Integer appId);
+
+    Boolean scrapPartReturnedEqu(Integer appId, Integer num);
+
+    Boolean record(Integer appId);
 }

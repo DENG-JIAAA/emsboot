@@ -18,17 +18,19 @@ public class ApplyInfo {
     private Integer equUseCate;
 
     private Long equUseTime;
+    private Integer equDay;
     private String remark;
 
     public ApplyInfo() {
     }
 
-    public ApplyInfo(Integer userId, Integer equId, Integer equQuantity, Integer equUseCate, Long equUseTime, String remark) {
+    public ApplyInfo(Integer userId, Integer equId, Integer equQuantity, Integer equUseCate, Long equUseTime, Integer equDay, String remark) {
         this.userId = userId;
         this.equId = equId;
         this.equQuantity = equQuantity;
         this.equUseCate = equUseCate;
         this.equUseTime = equUseTime;
+        this.equDay = equDay;
         this.remark = remark;
     }
 }

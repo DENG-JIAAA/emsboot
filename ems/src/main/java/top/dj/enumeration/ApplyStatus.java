@@ -7,7 +7,10 @@ public enum ApplyStatus {
     PASS("通过", 3),
     REJECT("驳回", 4),
     USING("使用中", 5),
-    RETURNED("已返还", 6);
+    RETURNED("已返还", 6),
+    STORED("已入库", 7),
+    MAINTENANCE("维修中", 8),
+    SCRAPPED("已报废", 9);
 
     private String name;
     private Integer index;

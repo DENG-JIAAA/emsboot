@@ -4,6 +4,23 @@ import top.dj.POJO.DO.EquApproval;
 import top.dj.POJO.DO.EquApprovalLog;
 
 public interface EquApprovalLogService extends MyIService<EquApprovalLog> {
-    void recordALog(EquApproval equApproval);
+    boolean recordLog(EquApproval equApproval);
+
+    /**
+     * 获得管理员负责实践室的所有设备的 被借用次数之和
+     *
+     * @param userId 管理员id
+     * @return
+     */
+    Integer numOfBorrow(Integer userId);
+
+    /**
+     * 获得管理员负责实践室的所有设备的 被借用的达标率（借用完后未维修、未报废，直接入库）
+     *
+     * @param userId 管理员id
+     * @return 返回一个百分点（ 达标数/被借用总数 ）
+     */
+    // Integer equStandardPoint(Integer userId);
+
 
 }
