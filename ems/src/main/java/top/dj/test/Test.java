@@ -6,7 +6,7 @@ package top.dj.test;
  */
 public class Test {
     public static void main(String[] args) {
-        String url = "http://localhost:8080/equ/upload/avatar/100";
+        String url = "http://localhost:8080/equ/upload/avatar/1000";
 
         int i = url.lastIndexOf('/');
         String substring = url.substring(i);
