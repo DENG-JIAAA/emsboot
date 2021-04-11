@@ -53,6 +53,7 @@ public class Equipment implements Serializable {
     private Integer equUser;                //负责人id
     private Integer equState;               //设备目前状态id
     private Integer useCount;               //设备使用次数
+    private String equPicture;             //设备图片
     private String remark;                  //备注
 
     @TableField(exist = false)
@@ -68,7 +69,6 @@ public class Equipment implements Serializable {
     @JoinColumn(name = "id", referencedColumnName = "equ_id")
     @InverseJoinColumn(name = "id", referencedColumnName = "cate_id")
     private List<EquUseCate> useCates;      //设备投入使用的方向
-
 
 
     public Equipment() {
@@ -109,6 +109,7 @@ public class Equipment implements Serializable {
                 ", equUser=" + equUser +
                 ", equState=" + equState +
                 ", useCount=" + useCount +
+                ", equPicture='" + equPicture + '\'' +
                 ", remark='" + remark + '\'' +
                 ", statuses=" + statuses +
                 ", useCates=" + useCates +
@@ -265,6 +266,14 @@ public class Equipment implements Serializable {
 
     public void setUseCount(Integer useCount) {
         this.useCount = useCount;
+    }
+
+    public String getEquPicture() {
+        return equPicture;
+    }
+
+    public void setEquPicture(String equPicture) {
+        this.equPicture = equPicture;
     }
 
     public String getRemark() {

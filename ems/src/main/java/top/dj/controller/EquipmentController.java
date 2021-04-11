@@ -12,6 +12,7 @@ import top.dj.service.UserService;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -29,7 +30,6 @@ public class EquipmentController extends BaseController<Equipment> {
     private UserService userService;
     @Autowired
     private EquApprovalService equApprovalService;
-
 
     @GetMapping("/vo/{id}")
     public EquVO findEquVO(@PathVariable("id") Integer id) {
@@ -137,5 +137,22 @@ public class EquipmentController extends BaseController<Equipment> {
         boolean OK = list != null && !list.isEmpty();
         return new ResultVO<>
                 (OK ? 20000 : 20404, OK ? "获取审批记录成功" : "获取审批记录失败", list);
+    }
+
+    @PostMapping("/upload/file")
+    public ResultVO<String> uploadFile(HttpServletRequest request) throws IOException {
+        String fileUrl = equipmentService.uploadFile(request);
+        return new ResultVO<>(20000, "上传设备图片，返回头像地址。", fileUrl);
+    }
+
+    // 修改设备的图片信息，先上传，再修改
+    @PostMapping("/upload/file/{id}")
+    public ResultVO<String> uploadAndModify(HttpServletRequest request,
+                                   @PathVariable("id") Integer id) throws IOException {
+        // 上传七牛云
+        String url = uploadFile(request).getData();
+        // 修改数据库
+        boolean modify  = equipmentService.modifyImgUrl(id, url);
+        return new ResultVO<>(20000, "修改设备图片，返回头像地址。", url);
     }
 }

@@ -6,8 +6,11 @@ package top.dj.test;
  */
 public class Test {
     public static void main(String[] args) {
-        Son son1 = new Son(1, "test1", "blue");
-        Son son2 = new Son(2, "test2", "blue");
-        System.out.println(son1.equals(son2));
+        String url = "http://localhost:8080/equ/upload/avatar/100";
+
+        int i = url.lastIndexOf('/');
+        String substring = url.substring(i);
+        String s = url.substring(0, i);
+        System.out.println("s = " + s);
     }
 }

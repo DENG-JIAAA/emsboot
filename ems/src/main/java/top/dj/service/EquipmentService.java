@@ -7,6 +7,9 @@ import top.dj.POJO.VO.DataVO;
 import top.dj.POJO.VO.EquQueryVO;
 import top.dj.POJO.VO.EquVO;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+
 public interface EquipmentService extends MyIService<Equipment> {
 
     EquVO findEquVO(Integer id);
@@ -19,4 +22,7 @@ public interface EquipmentService extends MyIService<Equipment> {
 
     Boolean applyForUseEquipment(ApplyInfo applyInfo);
 
+    String uploadFile(HttpServletRequest request) throws IOException;
+
+    boolean modifyImgUrl(Integer id, String url);
 }

@@ -24,4 +24,8 @@ public class Room implements Serializable {
     private Integer id;             // 实践室id
     private String roomName;        // 实践室名字
     private String roomDesc;        // 描述
+
+    public Room(Integer id) {
+        this.id = id;
+    }
 }

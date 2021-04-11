@@ -184,4 +184,14 @@ public class UserServiceTest {
             System.out.println("entity = " + entity);
         }
     }
+
+    @Test
+    void test12() {
+        int i = 70;
+        User user = new User();
+        user.setId(70);
+        user.setLoginPwd("pwd19b");
+        User one = userMapper.selectOne(new QueryWrapper<>(user));
+        System.out.println("one = " + one);
+    }
 }

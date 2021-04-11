@@ -1,6 +1,8 @@
 package top.dj.mapper;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +10,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import top.dj.POJO.DO.User;
 import top.dj.POJO.VO.LoginVO;
 import top.dj.service.UserService;
+
+import java.util.List;
 
 @SpringBootTest
 class UserMapperTest {
@@ -37,6 +41,20 @@ class UserMapperTest {
 
         User serviceOne = userService.getOne(new QueryWrapper<>(user));
         System.out.println("【service】 selectOne = " + serviceOne);
+    }
+
+    @Test
+    void test03() {
+        IPage<User> ip = new Page<>(1, 10);
+
+        QueryWrapper queryWrapper = new QueryWrapper();
+        queryWrapper.eq("id",2);
+        IPage<User> userIPage = userMapper.selectPage(ip,queryWrapper);
+        List<User> records = userIPage.getRecords();
+        for (User record : records) {
+            System.out.println("record = " + record);
+        }
+
     }
 
 }

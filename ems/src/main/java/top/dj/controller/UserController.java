@@ -4,12 +4,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import top.dj.POJO.DO.User;
-import top.dj.POJO.VO.*;
+import top.dj.POJO.VO.DataVO;
+import top.dj.POJO.VO.ResultVO;
+import top.dj.POJO.VO.UserQueryVO;
+import top.dj.POJO.VO.UserVO;
 import top.dj.mapper.UserMapper;
 import top.dj.service.UserService;
+import top.dj.service.impl.QiNiuService;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 
 /**
  * @author dj
@@ -24,6 +29,8 @@ public class UserController extends BaseController<User> {
     private UserService userService;
     @Resource
     private RedisTemplate<String, User> redisTemplate;
+    @Autowired
+    private QiNiuService qiNiuService;
 
     @GetMapping("/vo/{id}")
     public UserVO findUserVO(@PathVariable("id") Integer id) {
@@ -77,4 +84,20 @@ public class UserController extends BaseController<User> {
         return new ResultVO<>
                 (OK ? 20000 : 20404, OK ? "修改资料成功" : "修改资料失败", OK);
     }
+
+    @GetMapping("/changePwd")
+    public ResultVO<Integer> changePwd(HttpServletRequest request,
+                                       @RequestParam String oldPwd,
+                                       @RequestParam String newPwd) {
+
+        Integer i = userService.changePwd(request, oldPwd, newPwd);
+        return new ResultVO<>(20000, i == 1 ? "修改密码成功" : "修改密码失败！！", i);
+    }
+
+    @PostMapping("/upload/avatar")
+    public ResultVO<String> uploadAvatar(HttpServletRequest request) throws IOException {
+        String avatarUrl = userService.uploadAndUpdate(request);
+        return new ResultVO<>(20000, "上传头像，返回头像地址。", avatarUrl);
+    }
+
 }

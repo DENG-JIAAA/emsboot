@@ -56,8 +56,11 @@ public class MyAccessDecisionManager implements AccessDecisionManager {
                 // 超级管理员拥有所有权限，直接放行。
                 return;
             } else if (ga.getAuthority().equals("ROLE_ANONYMOUS")) {
-                // 未登录只允许访问 login 页面
+                // 未登录只允许访问 login和register 页面
                 matcher = new AntPathRequestMatcher("/login");
+                if (matcher.matches(request))
+                    return;
+                matcher = new AntPathRequestMatcher("/register");
                 if (matcher.matches(request))
                     return;
             } else if (ga instanceof MyGrantedAuthority) {

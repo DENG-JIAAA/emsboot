@@ -35,5 +35,6 @@ public class EquVO {
     private String equRoom;                  // 存放的实践室
     private String equUser;                  // 负责人
     private String equState;                // 设备目前状态
+    private String equPicture;             //设备图片
     private String remark;
 }

@@ -34,5 +34,12 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
 
+# 七牛云配置
+#qiniu:
+#  accesskey: J004ewGSWeoJd8PWoX2rbp4YWiapdYrapS98uVOh
+#  secretkey: 7zWqOPZyaYw0H1g2_48IelikMdQqPhpsRSRSvZf5
+#  bucketName: djosimon
+#  cdn:
+#    domain: http://img.djosimon.top/
 ---
 # prod

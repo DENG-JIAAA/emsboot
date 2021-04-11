@@ -22,7 +22,6 @@ import top.dj.utils.RedisUtil;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -48,20 +47,6 @@ public class LoginController {
     private PasswordEncoder pwdEncoder;
     @Autowired
     private RedisUtil redisUtil;
-
-    /**
-     * 处理用户注册
-     */
-    @PostMapping("/register")
-    public ResultVO<Boolean> register(@RequestBody LoginVO loginVO) {
-        User user = new User();
-        user.setLoginName(loginVO.getLoginName());
-        // 记得注册的时候把密码加密一下
-        user.setLoginPwd(pwdEncoder.encode(loginVO.getLoginPwd()));
-        user.setAuthorities(new ArrayList<>());
-        boolean save = userService.save(user);
-        return new ResultVO<>(20000, "注册用户", save);
-    }
 
     /**
      * 处理用户登录
@@ -100,6 +85,15 @@ public class LoginController {
             return new ResTokenVO(20000, "登录成功，用户存在。", token);
         }
         return new ResTokenVO(200404, "登录失败，用户不存在。", null);
+    }
+
+    /**
+     * 处理用户注册
+     */
+    @PostMapping("/register")
+    public ResultVO<Boolean> register(@RequestBody User user) {
+        Boolean register = loginService.register(user);
+        return new ResultVO<>(20000, register ? "注册用户成功" : "注册用户失败", register);
     }
 
     /**

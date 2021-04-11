@@ -11,4 +11,6 @@ public interface LoginService {
 
     public User getUserByLoginInfo(User user);
 
+    public Boolean register(User user);
+
 }

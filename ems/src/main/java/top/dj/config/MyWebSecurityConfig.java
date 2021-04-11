@@ -120,6 +120,7 @@ public class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
                 // 不需要鉴权的路径，指前一个antMatcher的地址未登录时可以访问，不受保护（不需要认证）。
                 // .antMatchers("/register").permitAll()
+                .antMatchers("/register").permitAll()
                 .antMatchers("/login").permitAll()
                 .antMatchers("/logout").permitAll()
                 // 其他请求登录后即可访问

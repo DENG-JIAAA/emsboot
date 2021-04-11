@@ -6,12 +6,15 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartRequest;
 import top.dj.POJO.DO.*;
 import top.dj.POJO.VO.DataVO;
 import top.dj.POJO.VO.UserQueryVO;
@@ -25,6 +28,8 @@ import top.dj.service.RoleService;
 import top.dj.service.UserRoleService;
 import top.dj.service.UserService;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
@@ -52,6 +57,10 @@ public class UserServiceImpl extends MyServiceImpl<UserMapper, User> implements 
     private RoleMapper roleMapper;
     @Autowired
     private RoomMapper roomMapper;
+    @Autowired
+    private RedisTemplate<String, User> redisTemplate;
+    @Autowired
+    private QiNiuService qiNiuService;
 
     /**
      * 通过用户 id 封装以适应前端的 UserVO 单个数据
@@ -60,6 +69,7 @@ public class UserServiceImpl extends MyServiceImpl<UserMapper, User> implements 
      * @return
      */
     @Override
+
     public UserVO findUserVO(Integer id) {
         User user = new User();
         user.setId(id);
@@ -291,6 +301,65 @@ public class UserServiceImpl extends MyServiceImpl<UserMapper, User> implements 
         return convert(userPage, new DataVO<>());
     }
 
+    /**
+     * 用户修改密码
+     *
+     * @param request 包含了当前登录用户的信息
+     * @param oldPwd  原始密码
+     * @param newPwd  新密码
+     * @return -1 -- 原始密码错误 | 0 -- 修改失败 | 1 -- 修改成功
+     */
+    @Override
+    public Integer changePwd(HttpServletRequest request, String oldPwd, String newPwd) {
+        User user = redisTemplate.opsForValue().get(request.getHeader("token"));
+        Wrapper<User> wrapper = new QueryWrapper<>(user);
+        User one = userMapper.selectById(user.getId());
+        if (one != null) {
+            if (oldPwd.equals(one.getPassword())) {
+                one.setLoginPwd(newPwd);
+                return userMapper.updateById(one);
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * 上传用户头像到七牛云
+     * 更新用户在数据库中的头像地址
+     *
+     * @param request
+     * @return
+     * @throws IOException
+     */
+    @Override
+    public String uploadAndUpdate(HttpServletRequest request) throws IOException {
+        // 上传七牛云
+        String avatarUrl = upload(request, "avatar");
+        // 更新数据库中用户头像地址
+        String token = request.getHeader("token");
+        User redisUser = redisTemplate.opsForValue().get(token);
+        if (redisUser != null) {
+            User dbUser = userService.getById(redisUser.getId());
+            dbUser.setUserPicture(avatarUrl);
+            userMapper.updateById(dbUser);
+        }
+        return avatarUrl;
+    }
+
+    public String upload(HttpServletRequest request, String name) throws IOException {
+        MultipartFile file = ((MultipartRequest) request).getFile(name);
+
+        // 将图片文件转换为字节数组，存储到本地
+        /*byte[] bytes = file.getBytes();
+        String originalFilename = file.getOriginalFilename();
+        String fileName = System.currentTimeMillis() + originalFilename;
+        Path path = Paths.get("D:\\workspace\\idea\\biyesheji\\emsvue_plus\\src\\assets\\images\\avatar\\" + fileName);
+        Files.write(path, bytes);*/
+
+        // 将图片存储到七牛云，imgUrl为存储在七牛云的图片地址
+        assert file != null;
+        return qiNiuService.saveImage(file);
+    }
 
     protected Integer getRoomIdIfNoSuper(User user) {
         Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
@@ -318,13 +387,16 @@ public class UserServiceImpl extends MyServiceImpl<UserMapper, User> implements 
     public UserVO convert(User user, UserVO userVO) {
         if (user == null) return null;
 
-        Room room = new Room();
+        Room room = null;
         // 将 相同的属性拷贝过来
         copyProperties(user, userVO);
 
-        // 设置 userVO 管理的设备库名称
-        room.setId(user.getUserRoom());
-        room = roomMapper.selectOne(new QueryWrapper<>(room));
+        // 设置 userVO 管理的设备库名称（用户是管理员需要设置管理的实践室，用户是普通游客不需要设置实践室信息）
+        Integer rId = user.getUserRoom();
+        if (rId != null) {
+            room = new Room(rId);
+            room = roomMapper.selectOne(new QueryWrapper<>(room));
+        }
         if (room != null) userVO.setUserRoom(room.getRoomName());
 
         // 设置 userVO 的角色列表

@@ -14,6 +14,8 @@ import top.dj.POJO.VO.EquVO;
 import top.dj.mapper.*;
 import top.dj.service.EquipmentService;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -119,6 +121,22 @@ public class EquipmentServiceImpl extends MyServiceImpl<EquipmentMapper, Equipme
         // 记录此次申请
         int record = equApprovalMapper.insert(approval);
         return update == 1 && record == 1;
+    }
+
+    @Override
+    public String uploadFile(HttpServletRequest request) throws IOException {
+        return userServiceImpl.upload(request, "file");
+    }
+
+    @Override
+    public boolean modifyImgUrl(Integer id, String url) {
+        // 若上传不成功，直接返回false
+        if (url == null) return false;
+        Equipment equipment = equipmentMapper.selectById(id);
+        // 断言从数据库中查出来的设备不为空
+        assert equipment != null;
+        equipment.setEquPicture(url);
+        return equipmentMapper.updateById(equipment) == 1;
     }
 
 
