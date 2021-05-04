@@ -24,4 +24,5 @@ public interface UserService extends MyIService<User>, UserDetailsService {
     // 上传用户头像
     String uploadAndUpdate(HttpServletRequest request) throws IOException;
 
+    boolean modifyAvatarUrl(Integer id, String url);
 }

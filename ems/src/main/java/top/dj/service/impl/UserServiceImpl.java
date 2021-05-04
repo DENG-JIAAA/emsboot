@@ -112,23 +112,26 @@ public class UserServiceImpl extends MyServiceImpl<UserMapper, User> implements 
      */
     @Override
     public boolean updateById(User user) {
-        // 设置一些基本数据
-        String remark = user.getRemark();
         Integer userId = user.getId();
-        user.setRemark(remark.substring(0, remark.indexOf("_")));
-
-        // 如果修改用户失败，直接返回false
-        if (super.getBaseMapper().updateById(user) != 1) return false;
-
-        // 前端传来的用户角色列表为空，执行清空逻辑即可。
-        List<Integer> roleIDList = getUserRoleIDs(remark);
-        if (roleIDList.isEmpty()) return removeUserRole(userId);
-
         // 封装需要更改的用户角色列表
         List<UserRole> userRoleList = new ArrayList<>();
-        roleIDList.forEach(roleID -> userRoleList.add(new UserRole(null, userId, roleID)));
-
-        // 修改指定用户的角色列表，先把用户角色对应关系全部移除
+        List<Integer> roleIDList = new ArrayList<>();
+        Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
+        authorities.forEach(authority -> {
+            String roleName = authority.getAuthority();
+            Integer roleId = roleMapper.selectOne(new QueryWrapper<>(new Role("ROLE_" + roleName))).getId();
+            roleIDList.add(roleId);
+        });
+        for (Integer roleID : roleIDList) {
+            // 表示用户只有一个角色，且角色为visitor普通游客，那么需要将管理实践室置为空。（普通用户不管理实践室）
+            if (roleIDList.size() == 1 && roleID == 1) {
+                user.setUserRoom(0);
+                // 如果修改用户失败，返回false
+                if (super.getBaseMapper().updateById(user) != 1) return false;
+            }
+            userRoleList.add(new UserRole(null, userId, roleID));
+        }
+        // 修改指定用户的角色列表（先把用户角色对应关系全部移除，再添加。）
         boolean remove = removeUserRole(userId);
         boolean save = true;
         // 移除完成后，生成新的用户角色对应关系。
@@ -160,7 +163,7 @@ public class UserServiceImpl extends MyServiceImpl<UserMapper, User> implements 
 
 
     /**
-     * 添加 user 数据
+     * 添加用户
      *
      * @param user
      * @return
@@ -168,12 +171,15 @@ public class UserServiceImpl extends MyServiceImpl<UserMapper, User> implements 
     @Override
     public boolean save(User user) {
         // 添加用户
-        String remark = user.getRemark();
-        user.setRemark(remark.substring(0, remark.indexOf("_")));
         if (super.getBaseMapper().insert(user) != 1) return false;
 
         // 获取用户角色ID
-        List<Integer> roleIDList = getUserRoleIDs(remark);
+        List<Integer> roleIDList = new ArrayList<>();
+        Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
+        authorities.forEach(authority -> {
+            String roleName = authority.getAuthority();
+            roleIDList.add(roleService.getOne(new QueryWrapper<>(new Role("ROLE_" + roleName))).getId());
+        });
 
         // 添加用户角色列表
         if (roleIDList.isEmpty()) return true;
@@ -344,6 +350,15 @@ public class UserServiceImpl extends MyServiceImpl<UserMapper, User> implements 
             userMapper.updateById(dbUser);
         }
         return avatarUrl;
+    }
+
+    @Override
+    public boolean modifyAvatarUrl(Integer id, String url) {
+        if (url == null) return false;
+        User user = userMapper.selectById(id);
+        assert user != null;
+        user.setUserPicture(url);
+        return userMapper.updateById(user) == 1;
     }
 
     public String upload(HttpServletRequest request, String name) throws IOException {

@@ -28,4 +28,8 @@ public class Room implements Serializable {
     public Room(Integer id) {
         this.id = id;
     }
+
+    public Room(String roomName) {
+        this.roomName = roomName;
+    }
 }

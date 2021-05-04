@@ -57,4 +57,11 @@ class UserMapperTest {
 
     }
 
+    @Test
+    void test04() {
+        User one = userMapper.selectOne(new QueryWrapper<>(new User("djosimon", "654321a")));
+        System.out.println("one = " + one);
+
+    }
+
 }

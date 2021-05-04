@@ -2,6 +2,7 @@ package top.dj.service;
 
 import top.dj.POJO.DO.EquApproval;
 import top.dj.POJO.VO.EquApprovalVO;
+import top.dj.POJO.VO.EquRepairInfo;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -27,13 +28,15 @@ public interface EquApprovalService extends MyIService<EquApproval> {
 
     List<EquApprovalVO> getStoredEqu(HttpServletRequest request);
 
+    List<EquApprovalVO> getRepairingEqu(HttpServletRequest request);
+
     List<EquApprovalVO> getScrappedEqu(HttpServletRequest request);
 
-    EquApproval show(Integer appId);
+    EquApproval show(HttpServletRequest request, Integer appId);
 
     Boolean pass(Integer appId);
 
-    Boolean startUseEquipment(Integer appId);
+    Boolean startUseEquipment(Integer appId, Long startTime);
 
     Boolean reject(Integer appId);
 
@@ -45,7 +48,9 @@ public interface EquApprovalService extends MyIService<EquApproval> {
 
     Boolean storePartReturnedEqu(Integer appId, Integer num);
 
-    Boolean maintainReturnedEqu(Integer appId);
+    Boolean maintainReturnedEqu(Integer appId,Integer num);
+
+    Boolean maintainReturnedEqu(EquRepairInfo equRepairInfo);
 
     Boolean scrapReturnedEqu(Integer appId);
 

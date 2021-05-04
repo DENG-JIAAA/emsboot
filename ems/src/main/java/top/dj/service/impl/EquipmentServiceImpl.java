@@ -139,6 +139,27 @@ public class EquipmentServiceImpl extends MyServiceImpl<EquipmentMapper, Equipme
         return equipmentMapper.updateById(equipment) == 1;
     }
 
+    @Override
+    public boolean save(EquVO equVO) {
+        Integer userId = userMapper.selectOne(new QueryWrapper<>(new User(equVO.getEquUser()))).getId();
+        Integer roomId = roomMapper.selectOne(new QueryWrapper<>(new Room(equVO.getEquRoom()))).getId();
+
+        Equipment equ = new Equipment();
+        copyProperties(equVO, equ);
+        equ.setEquUser(userId);
+        equ.setEquRoom(roomId);
+
+        equ.setEquCate(Integer.parseInt(equVO.getEquCate()));
+        equ.setEquState(Integer.parseInt(equVO.getEquState()));
+
+        return equipmentMapper.insert(equ) == 1;
+    }
+
+    @Override
+    public List<User> getNowRoomUsers(Integer roomId) {
+        return userMapper.selectList(new QueryWrapper<>(new User(null, roomId)));
+    }
+
 
     // 将单个 DO 转换为前端适应的 VO
     public EquVO convert(Equipment equ, EquVO equVO) {

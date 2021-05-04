@@ -32,15 +32,12 @@ public class EquipmentController extends BaseController<Equipment> {
     private EquApprovalService equApprovalService;
 
     @GetMapping("/vo/{id}")
-    public EquVO findEquVO(@PathVariable("id") Integer id) {
-        return equipmentService.findEquVO(id);
+    public ResultVO<EquVO> findEquVO(@PathVariable("id") Integer id) {
+        EquVO equVO = equipmentService.findEquVO(id);
+        boolean OK = equVO != null;
+        return new ResultVO<>
+                (OK ? 20000 : 20404, OK ? "获取设备信息成功" : "设备[" + id + "]不存在", equVO);
     }
-
-    /*@GetMapping("/vo/{page}/{limit}")
-    public DataVO<EquVO> findEquVO(@PathVariable("page") Integer page,
-                                   @PathVariable("limit") Integer limit) {
-        return equipmentService.findEquVO(page, limit);
-    }*/
 
     /**
      * admin管理员只能查看他所负责的那个实践室的所有设备。
@@ -78,6 +75,22 @@ public class EquipmentController extends BaseController<Equipment> {
         return new ResultVO<>
                 (OK ? 20000 : 20404, OK ? "获取设备条件查询列表成功" : "获取设备条件查询列表失败", equVO);
     }
+
+    @PostMapping("/addVO")
+    public ResultVO<Boolean> addOneEqu(HttpServletRequest request, @RequestBody EquVO equVO) {
+        boolean save = equipmentService.save(equVO);
+        return new ResultVO<>
+                (save ? 20000 : 20404, save ? "添加设备成功" : "添加设备失败", save);
+    }
+
+    @GetMapping("/nowRU/{id}")
+    public ResultVO<List<User>> getNowRoomUsers(@PathVariable("id") Integer roomId) {
+        List<User> roomUsers = equipmentService.getNowRoomUsers(roomId);
+        boolean OK = roomUsers != null;
+        return new ResultVO<>
+                (OK ? 20000 : 20404, OK ? "获取用户成功" : "获取用户失败", roomUsers);
+    }
+
 
     /**
      * 用户申请使用设备
@@ -148,11 +161,11 @@ public class EquipmentController extends BaseController<Equipment> {
     // 修改设备的图片信息，先上传，再修改
     @PostMapping("/upload/file/{id}")
     public ResultVO<String> uploadAndModify(HttpServletRequest request,
-                                   @PathVariable("id") Integer id) throws IOException {
+                                            @PathVariable("id") Integer id) throws IOException {
         // 上传七牛云
         String url = uploadFile(request).getData();
         // 修改数据库
-        boolean modify  = equipmentService.modifyImgUrl(id, url);
+        boolean modify = equipmentService.modifyImgUrl(id, url);
         return new ResultVO<>(20000, "修改设备图片，返回头像地址。", url);
     }
 }

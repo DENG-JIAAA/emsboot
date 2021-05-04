@@ -9,6 +9,7 @@ import top.dj.POJO.VO.EquVO;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.List;
 
 public interface EquipmentService extends MyIService<Equipment> {
 
@@ -25,4 +26,8 @@ public interface EquipmentService extends MyIService<Equipment> {
     String uploadFile(HttpServletRequest request) throws IOException;
 
     boolean modifyImgUrl(Integer id, String url);
+
+    boolean save(EquVO equVO);
+
+    List<User> getNowRoomUsers(Integer roomId);
 }

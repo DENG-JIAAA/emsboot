@@ -34,7 +34,7 @@ public class Role implements GrantedAuthority, Serializable {
     private Integer id;                 // 角色id
     private String roleName;            // 角色英文名称
     private String roleNameZh;          // 角色中文名称
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Timestamp roleCreateTime;   // 角色创建时间名字
     private String roleDescription;     // 描述
 

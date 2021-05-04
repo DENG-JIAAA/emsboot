@@ -11,6 +11,7 @@ import top.dj.POJO.VO.UserVO;
 import top.dj.mapper.UserMapper;
 import top.dj.service.UserService;
 import top.dj.service.impl.QiNiuService;
+import top.dj.service.impl.UserServiceImpl;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -27,6 +28,8 @@ public class UserController extends BaseController<User> {
     private UserMapper userMapper;
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserServiceImpl userServiceImpl;
     @Resource
     private RedisTemplate<String, User> redisTemplate;
     @Autowired
@@ -97,6 +100,17 @@ public class UserController extends BaseController<User> {
     @PostMapping("/upload/avatar")
     public ResultVO<String> uploadAvatar(HttpServletRequest request) throws IOException {
         String avatarUrl = userService.uploadAndUpdate(request);
+        return new ResultVO<>(20000, "上传头像，返回头像地址。", avatarUrl);
+    }
+
+    // 编辑用户头像信息（先上传，再修改）
+    @PostMapping("/upload/avatar/{id}")
+    public ResultVO<String> uploadAndModify(HttpServletRequest request,
+                                            @PathVariable("id") Integer id) throws IOException {
+        // 上传七牛云
+        String avatarUrl = userServiceImpl.upload(request, "file");
+        // 修改数据库
+        boolean modify = userService.modifyAvatarUrl(id, avatarUrl);
         return new ResultVO<>(20000, "上传头像，返回头像地址。", avatarUrl);
     }
 

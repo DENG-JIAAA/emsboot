@@ -11,6 +11,7 @@ import top.dj.POJO.DO.EquApproval;
 import top.dj.POJO.DO.Equipment;
 import top.dj.POJO.DO.User;
 import top.dj.POJO.VO.EquApprovalVO;
+import top.dj.POJO.VO.EquRepairInfo;
 import top.dj.enumeration.ApplyStatus;
 import top.dj.mapper.*;
 import top.dj.service.EquApprovalLogService;
@@ -99,12 +100,18 @@ public class EquApprovalServiceImpl extends MyServiceImpl<EquApprovalMapper, Equ
     @Override
     public List<EquApprovalVO> getReturnedEqu(HttpServletRequest request) {
         // return getStatusEquList(request, RETURNED, STORED, MAINTENANCE, SCRAPPED);
-        return getStatusEquList(request, RETURNED, MAINTENANCE);
+        // return getStatusEquList(request, RETURNED, MAINTENANCE);
+        return getStatusEquList(request, RETURNED);
     }
 
     @Override
     public List<EquApprovalVO> getStoredEqu(HttpServletRequest request) {
         return getStatusEquList(request, STORED);
+    }
+
+    @Override
+    public List<EquApprovalVO> getRepairingEqu(HttpServletRequest request) {
+        return getStatusEquList(request, MAINTENANCE);
     }
 
     @Override
@@ -139,13 +146,17 @@ public class EquApprovalServiceImpl extends MyServiceImpl<EquApprovalMapper, Equ
     }
 
     @Override
-    public EquApproval show(Integer appId) {
-        EquApproval approval = equApprovalMapper.selectById(appId);
-        Integer statusId = approval.getApprovalStatusId();
-        // 如果当前状态是 -- 待审核，点击查看就将审核状态为 -- 审核中
-        approval.setApprovalStatusId(statusId == 1 ? 2 : statusId);
-        if (statusId != 1) return approval;
-        equApprovalMapper.updateById(approval);
+    public EquApproval show(HttpServletRequest request, Integer appId) {
+        User user = redisTemplate.opsForValue().get(request.getHeader("token"));
+        if (AdminOrSuper(user)) {
+            // 当前用户是管理员才做如下操作
+            EquApproval approval = equApprovalMapper.selectById(appId);
+            Integer statusId = approval.getApprovalStatusId();
+            // 如果当前状态是 -- 待审核，点击查看就将审核状态为 -- 审核中
+            approval.setApprovalStatusId(statusId == 1 ? 2 : statusId);
+            if (statusId != 1) return approval;
+            equApprovalMapper.updateById(approval);
+        }
         return equApprovalMapper.selectById(appId);
     }
 
@@ -173,13 +184,20 @@ public class EquApprovalServiceImpl extends MyServiceImpl<EquApprovalMapper, Equ
      * @return
      */
     @Override
-    public Boolean startUseEquipment(Integer appId) {
+    public Boolean startUseEquipment(Integer appId, @Nullable Long startTime) {
         EquApproval approval = equApprovalMapper.selectById(appId);
         int count = 0;
         if (approval != null) {
             Integer statusId = approval.getApprovalStatusId();
+            long equUseTime = approval.getEquUseTime().getTime();
+            Integer day = approval.getEquDay();
             // 设备审核通过，用户可以使用设备。将状态id置为: 5 -- 设备使用中
             approval.setApprovalStatusId(statusId == 3 ? 5 : statusId);
+            // itsTime为false的话，代表用户提前使用了设备，更新equUseTime。
+            // 用户没有提前开始使用设备的话，就按默认的用户在提交申请表单时填写的预计开始使用时间
+            if (startTime != null) approval.setEquUseTime(new Timestamp(startTime));
+            long useMilli = day * 24 * 60 * 60 * 1000L;
+            approval.setEquReturnTime(new Timestamp((startTime == null ? equUseTime : startTime) + useMilli));
             count = equApprovalMapper.updateById(approval);
         }
         return approval != null && count == 1;
@@ -235,8 +253,17 @@ public class EquApprovalServiceImpl extends MyServiceImpl<EquApprovalMapper, Equ
      */
     @Override
     public Boolean cancelApplication(Integer appId) {
+        EquApproval approval = equApprovalMapper.selectById(appId);
+        Integer equId = approval.getEquId();
+        // 申请借用的设备数量
+        Integer appQuantity = approval.getEquQuantity();
+        // 先恢复设备的库存数量
+        Equipment equ = equipmentMapper.selectById(equId);
+        equ.setEquQuantity(equ.getEquQuantity() + appQuantity);
+        int reQuantity = equipmentMapper.updateById(equ);
+        // 再删除用户的申请记录
         int count = equApprovalMapper.deleteById(appId);
-        return count == 1;
+        return reQuantity == 1 && count == 1;
     }
 
     /**
@@ -286,8 +313,8 @@ public class EquApprovalServiceImpl extends MyServiceImpl<EquApprovalMapper, Equ
                 copyApp.setApprovalStatusId(7);
                 copyApp.setEquQuantity(num);
                 copyApp.setId(null);
-                // 3、设置父id
-                copyApp.setParentId(appId);
+                // 3、设置父id（逐层向上依赖，最终的父id一定是用户归还设备的那一条申请的id）
+                copyApp.setParentId(approval.getParentId() == null ? appId : approval.getParentId());
                 equApprovalMapper.insert(copyApp);
             }
             i = equApprovalMapper.updateById(approval);
@@ -308,7 +335,7 @@ public class EquApprovalServiceImpl extends MyServiceImpl<EquApprovalMapper, Equ
      * @return
      */
     @Override
-    public Boolean maintainReturnedEqu(Integer appId) {
+    public Boolean maintainReturnedEqu(Integer appId, @Nullable Integer num) {
         EquApproval approval = equApprovalMapper.selectById(appId);
         boolean record = false;
         int count = 0;
@@ -319,6 +346,49 @@ public class EquApprovalServiceImpl extends MyServiceImpl<EquApprovalMapper, Equ
             record = equApprovalLogService.recordLog(approval);
         }
         return approval != null && count == 1 && record;
+    }
+
+    @Override
+    public Boolean maintainReturnedEqu(EquRepairInfo equRepairInfo) {
+        Integer appId = equRepairInfo.getId();
+        // nowQuantity -- 归还的设备、待处理的数量
+        Integer nowQuantity = equRepairInfo.getReturnQuantity();
+        // maintainQuantity -- 提交申请维修的设备数量
+        Integer maintainQuantity = equRepairInfo.getMaintainQuantity();
+
+        EquApproval approval = equApprovalMapper.selectById(appId);
+        int m = 0, i = 0, j = 0;
+        if (approval != null) {
+            Integer equId = approval.getEquId();
+            Integer statusId = approval.getApprovalStatusId();
+            // 用户归还的设备有损，管理员将其提交维修。
+            if (maintainQuantity.equals(nowQuantity)) {
+                // 全部维修，设置新状态，数量不变
+                approval.setApprovalStatusId(statusId == 6 ? 8 : statusId);
+            } else {
+                // 部分维修（复制一条请求使用记录）
+                // 1、改变已返还的数量
+                approval.setEquQuantity(nowQuantity - maintainQuantity);
+                // 2、设置指定数量的维修（生成一个拷贝版，并将拷贝版的parentId设为当前approval的id）
+                EquApproval copyApp = new EquApproval();
+                copyProperties(approval, copyApp);
+                copyApp.setApprovalStatusId(8);
+                copyApp.setEquQuantity(maintainQuantity);
+                copyApp.setId(null);
+                // 3、设置父id
+                copyApp.setParentId(appId);
+                // 4、插入一条部分的维修申请
+                m = equApprovalMapper.insert(copyApp);
+            }
+            // 更新原有的归还申请（主要是数量的变更）
+            i = equApprovalMapper.updateById(approval);
+
+            Equipment equipment = equipmentMapper.selectById(equId);
+            // 仓库设备的数量变更
+            equipment.setEquQuantity(equipment.getEquQuantity() + maintainQuantity);
+            j = equipmentMapper.updateById(equipment);
+        }
+        return approval != null && m == 1 && i == 1 && j == 1;
     }
 
     /**
@@ -356,8 +426,8 @@ public class EquApprovalServiceImpl extends MyServiceImpl<EquApprovalMapper, Equ
                 copyApp.setApprovalStatusId(9);
                 copyApp.setEquQuantity(num);
                 copyApp.setId(null);
-                // 设置父id
-                copyApp.setParentId(appId);
+                // 设置父id（逐层向上依赖获取父id）
+                copyApp.setParentId(approval.getParentId() == null ? appId : approval.getParentId());
                 equApprovalMapper.insert(copyApp);
             }
             count = equApprovalMapper.updateById(approval);
@@ -389,11 +459,13 @@ public class EquApprovalServiceImpl extends MyServiceImpl<EquApprovalMapper, Equ
             Integer parentId = approval.getParentId();
             // statusId -- 当前设备的状态
             Integer statusId = approval.getApprovalStatusId();
+            // 记录一条部分数量的申请记录
             if (parentId != null) {
-                // 记录父申请
                 equApprovalMapper.deleteById(thisId);
                 return record(parentId, partQuantity, statusId);
             }
+            // 无论是部分操作还是全数操作，都需要要走这一步。
+            equApprovalMapper.deleteById(thisId);
             // 运行到此处说明，记录的是所有（没有父id），log数据表中，1代表正常入库设备，2代表损坏报废设备。
             approval.setApprovalStatusId(statusId.equals(7) ? 1 : 2);
             record = equApprovalLogService.recordLog(approval);
@@ -422,15 +494,15 @@ public class EquApprovalServiceImpl extends MyServiceImpl<EquApprovalMapper, Equ
     }
 
     /**
-     * @param logId    记录id
+     * @param appId    申请id
      * @param num      指定记录在册的设备数
      * @param statusId 这些设备的状态？正常--入库 / 损坏--报废
      * @return
      */
-    public Boolean record(Integer logId, Integer num, Integer statusId) {
+    public Boolean record(Integer appId, Integer num, Integer statusId) {
         // approval -- 当前准备记录在册的申请记录，需要修改的有
         // 1、数量。2、状态（1-正常 / 2-不正常）。3、根据statusId入参来判断是入库的记录还是报废的记录
-        EquApproval approval = equApprovalMapper.selectById(logId);
+        EquApproval approval = equApprovalMapper.selectById(appId);
         // 入库操作,不等于7（等于9）就是报废操作
         boolean store = statusId.equals(7);
         approval.setEquQuantity(num);
@@ -439,7 +511,8 @@ public class EquApprovalServiceImpl extends MyServiceImpl<EquApprovalMapper, Equ
         return equApprovalLogService.recordLog(approval);
     }
 
-    public boolean AdminOrSuper(User user) {
+    public boolean AdminOrSuper(@Nullable User user) {
+        if (user == null) return false;
         // authorities -- 用户的权限列表
         Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
         // role --- 用户的角色列表

@@ -6,11 +6,12 @@ package top.dj.test;
  */
 public class Test {
     public static void main(String[] args) {
-        String url = "http://localhost:8080/equ/upload/avatar/100";
+        int score = 100;
 
-        int i = url.lastIndexOf('/');
-        String substring = url.substring(i);
-        String s = url.substring(0, i);
-        System.out.println("s = " + s);
+        Integer[] nums = {1, 2, 3, 4, 5, 6};
+
+        score += 10 * 3;
+        System.out.println("score = " + score);
     }
 }
+

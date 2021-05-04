@@ -35,7 +35,7 @@ public class EquUse implements Serializable {
     @TableField("cate_id")
     private Integer cateId;//使用方向id
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Timestamp equUseTime;//使用时间
 
     @TableField("remark")

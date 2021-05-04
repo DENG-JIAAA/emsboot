@@ -194,4 +194,26 @@ public class UserServiceTest {
         User one = userMapper.selectOne(new QueryWrapper<>(user));
         System.out.println("one = " + one);
     }
+
+    @Test
+    void test13() {
+        Role one = roleService.getOne(new QueryWrapper<>(new Role("ROLE_SUPERADMIN")));
+        System.out.println("one = " + one);
+    }
+
+    @Test
+    void test14() {
+        User user = userMapper.selectById(266);
+        user.setUserRoom(0);
+        user.setUserRoom(null);
+        userMapper.updateById(user);
+
+    }
+
+    @Test
+    void test15() {
+        User one = userMapper.selectOne(new QueryWrapper<>(new User("sadmin6")));
+        System.out.println("one = " + one);
+
+    }
 }

@@ -211,4 +211,16 @@ public class EqupmentServiceTest {
         }
     }
 
+    @Test
+    void test07() {
+        Equipment equipment = equipmentService.getById(2);
+        System.out.println("equipment = " + equipment);
+//        equipment.setOutFirmTime(new Timestamp(0));
+//        equipment.setPurchaseTime(new Timestamp(0));
+        equipment.setOutFirmTime(null);
+        equipment.setPurchaseTime(null);
+        boolean update = equipmentService.updateById(equipment);
+        System.out.println("update = " + update);
+    }
+
 }

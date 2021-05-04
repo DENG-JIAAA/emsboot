@@ -4,10 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import top.dj.POJO.DO.EquApproval;
 import top.dj.POJO.VO.EquApprovalVO;
+import top.dj.POJO.VO.EquRepairInfo;
 import top.dj.POJO.VO.ResultVO;
 import top.dj.service.EquApprovalService;
 
 import javax.servlet.http.HttpServletRequest;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -21,8 +24,8 @@ public class EquApprovalController extends BaseController<EquApproval> {
     private EquApprovalService equApprovalService;
 
     @GetMapping("/show/{id}")
-    public ResultVO<EquApproval> showOneApproval(@PathVariable("id") Integer appId) {
-        EquApproval approval = equApprovalService.show(appId);
+    public ResultVO<EquApproval> showOneApproval(HttpServletRequest request, @PathVariable("id") Integer appId) {
+        EquApproval approval = equApprovalService.show(request, appId);
         boolean OK = approval != null;
         return new ResultVO<>
                 (OK ? 20000 : 20404, OK ? "获取记录成功" : "获取记录失败", approval);
@@ -87,6 +90,17 @@ public class EquApprovalController extends BaseController<EquApproval> {
                 (OK ? 20000 : 20404, OK ? "获取入库记录成功" : "获取入库记录失败", list);
     }
 
+    /**
+     * 管理员查看所有使用者归还且维修中的设备
+     */
+    @GetMapping("/repairing")
+    public ResultVO<List<EquApprovalVO>> repairing(HttpServletRequest request) {
+        List<EquApprovalVO> list = equApprovalService.getRepairingEqu(request);
+        boolean OK = list != null;
+        return new ResultVO<>
+                (OK ? 20000 : 20404, OK ? "获取维修记录成功" : "获取维修记录失败", list);
+    }
+
     @GetMapping("/scrapped")
     public ResultVO<List<EquApprovalVO>> scrappedEqu(HttpServletRequest request) {
         List<EquApprovalVO> list = equApprovalService.getScrappedEqu(request);
@@ -102,11 +116,24 @@ public class EquApprovalController extends BaseController<EquApproval> {
                 (pass ? 20000 : 20404, pass ? "审核通过" : "审核出错", pass);
     }
 
+    /**
+     * @param appId   申请id
+     * @param itsTime false -- 用户提前使用了设备
+     * @param endTime 用户需要归还设备的时间戳
+     * @return
+     */
     @GetMapping("/use/{id}")
-    public ResultVO<Boolean> startUseEquipment(@PathVariable("id") Integer appId) {
-        Boolean use = equApprovalService.startUseEquipment(appId);
+    public ResultVO<String> startUseEquipment(@PathVariable("id") Integer appId,
+                                              @RequestParam Boolean itsTime,
+                                              @RequestParam Long startTime,
+                                              @RequestParam Integer day) {
+        // 如果用户提前开始使用了设备，需要将数据库的equUseTime更新为当前时间（即：startTime）
+        Boolean use = equApprovalService.startUseEquipment(appId, itsTime ? null : startTime);
+        Date date = new Date(startTime + day * 24 * 60 * 60 * 1000);
+        // 用户开始使用设备，返回设备的最迟归还时间。
+        String endTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);
         return new ResultVO<>
-                (use ? 20000 : 20404, use ? "开始使用设备成功" : "开始使用设备失败", use);
+                (use ? 20000 : 20404, use ? "开始使用设备成功" : "开始使用设备失败", endTimeString);
     }
 
     @PostMapping("/reject/{id}")
@@ -170,7 +197,7 @@ public class EquApprovalController extends BaseController<EquApproval> {
      */
     @PostMapping("/maintain/{id}")
     public ResultVO<Boolean> maintainReturnedEqu(@PathVariable("id") Integer appId) {
-        Boolean maintain = equApprovalService.maintainReturnedEqu(appId);
+        Boolean maintain = equApprovalService.maintainReturnedEqu(appId, null);
         return new ResultVO<>
                 (maintain ? 20000 : 20404, maintain ? "维修表单提交成功" : "维修表单提交失败", maintain);
     }
@@ -182,17 +209,14 @@ public class EquApprovalController extends BaseController<EquApproval> {
      * 3、维修后可选择 -- 部分入库、全数入库、部分报废、全数报废
      */
     @PostMapping("/maintain")
-    public ResultVO<Boolean> maintainPartReturnedEqu() {
-
-
-//        Boolean maintain = equApprovalService.maintainReturnedEqu(appId);
-//        return new ResultVO<>
-//                (maintain ? 20000 : 20404, maintain ? "维修表单提交成功" : "维修表单提交失败", maintain);
-        return null;
+    public ResultVO<Boolean> maintainPartReturnedEqu(@RequestBody EquRepairInfo equRepairInfo) {
+        Boolean maintain = equApprovalService.maintainReturnedEqu(equRepairInfo);
+        return new ResultVO<>
+                (maintain ? 20000 : 20404, maintain ? "维修表单提交成功" : "维修表单提交失败", maintain);
     }
 
     /**
-     * 报废所有
+     * 报废所有@RequestBody
      *
      * @param appId
      * @return

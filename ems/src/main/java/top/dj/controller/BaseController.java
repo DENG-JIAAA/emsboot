@@ -9,8 +9,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import top.dj.POJO.VO.ResultVO;
+import top.dj.service.EquipmentService;
 import top.dj.service.MyIService;
+import top.dj.service.UserService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -90,7 +93,7 @@ public class BaseController<T> {
      * @return 是否添加成功
      */
     @PostMapping("/add")
-    public ResultVO<Boolean> addOneEntity(@RequestBody T t) {
+    public ResultVO<Boolean> addOneEntity(HttpServletRequest request, @RequestBody T t) {
         boolean save = myIService.save(t);
         return new ResultVO<>
                 (save ? 20000 : 20404, save ? "添加实体成功" : "添加实体失败", save);
@@ -103,7 +106,7 @@ public class BaseController<T> {
      * @return 是否修改成功
      */
     @PutMapping("/modify")
-    public ResultVO<Boolean> modifyOneEntity(@RequestBody T t) {
+    public ResultVO<Boolean> modifyOneEntity(HttpServletRequest request, @RequestBody T t) {
         boolean update = myIService.updateById(t);
         return new ResultVO<>
                 (update ? 20000 : 20404, update ? "修改实体成功" : "修改实体失败", update);
@@ -116,9 +119,16 @@ public class BaseController<T> {
      * @return 是否删除成功
      */
     @DeleteMapping("/{id}")
-    public ResultVO<Boolean> deleteOneEntity(@PathVariable("id") Integer id) {
+    public ResultVO<Boolean> deleteOneEntity(HttpServletRequest request, @PathVariable("id") Integer id) {
         boolean remove = myIService.removeById(id);
+        String defaultMsg = remove ? "删除实体成功" : "删除实体失败";
+        String dynaMsg = "";
+        if (myIService instanceof UserService) {
+            dynaMsg = remove ? "删除用户成功" : "删除用户失败";
+        } else if (myIService instanceof EquipmentService) {
+            dynaMsg = remove ? "删除设备成功" : "删除设备失败";
+        }
         return new ResultVO<>
-                (remove ? 20000 : 20404, remove ? "删除实体成功" : "删除实体失败", remove);
+                (remove ? 20000 : 20404, "".equals(dynaMsg) ? defaultMsg : dynaMsg, remove);
     }
 }

@@ -19,6 +19,12 @@
     </properties>
 
     <dependencies>
+        <!-- aop -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
         <!-- 七牛云 -->
         <dependency>
             <groupId>com.qiniu</groupId>

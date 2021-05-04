@@ -42,11 +42,11 @@ public class Equipment implements Serializable {
     private String equOtherParam;           //设备其他信息（主要电气及性能参数）
     private Double equPrice;                //设备单价
     private Integer equQuantity;            //设备数量
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Timestamp outFirmTime;          //出厂日期
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Timestamp purchaseTime;         //购置日期
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Timestamp storageTime;          //入库日期
     private Integer equLife;                //使用年限
     private Integer equRoom;                //存放的实践室id

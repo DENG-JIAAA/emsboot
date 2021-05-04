@@ -34,16 +34,16 @@ public class EquApproval implements Serializable {
     @TableField("equ_use_cate")
     private Integer equUseCate;//借用的设备将用于什么方向？
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Timestamp approvalTime;//用户发出申请的时间
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Timestamp equUseTime;//申请使用设备的时间
 
     @TableField("equ_day")
     private Integer equDay;//使用设备的时间（最长31天）
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Timestamp equReturnTime;//返还使用设备的时间
 
     @TableField("approval_status_id")

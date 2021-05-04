@@ -49,11 +49,11 @@ public class User implements UserDetails, Serializable {
 
     // private Integer userRole;           //用户角色（1-超级管理员；2-教学单位管理员；3-普通用户）
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Timestamp createTime;       //创建时间
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Timestamp loginTime;        //登录时间
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Timestamp lastLoginTime;    //上一次登录时间
     private Integer loginCount;         //登录次数
     private String userPicture;         //用户的头像（文件名绝对路径）
@@ -90,6 +90,11 @@ public class User implements UserDetails, Serializable {
 
     public User(String loginName) {
         this.loginName = loginName;
+    }
+
+    public User(String loginName, String loginPwd) {
+        this.loginName = loginName;
+        this.loginPwd = loginPwd;
     }
 
     public User(Integer id, Integer userRoom) {
