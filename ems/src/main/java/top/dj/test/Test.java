@@ -12,5 +12,7 @@ public class Test {
         String substring = url.substring(i);
         String s = url.substring(0, i);
         System.out.println("s = " + s);
+
+
     }
 }
