@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -17,7 +16,6 @@ import java.sql.Timestamp;
  */
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 @TableName("ems_log")
 public class Log implements Serializable {
@@ -30,6 +28,16 @@ public class Log implements Serializable {
     private Timestamp operateTime;
     private String operater;//操作员
     private String operand;//操作对象
+
+    private Integer roomId;//日志属于哪个实践室的管理员产生的
+
+    public Log() {
+    }
+
+    public Log(Integer id, Integer roomId) {
+        this.id = id;
+        this.roomId = roomId;
+    }
 
     public Integer getId() {
         return id;
@@ -73,6 +81,15 @@ public class Log implements Serializable {
 
     public Log setOperand(String operand) {
         this.operand = operand;
+        return this;
+    }
+
+    public Integer getRoomId() {
+        return roomId;
+    }
+
+    public Log setRoomId(Integer roomId) {
+        this.roomId = roomId;
         return this;
     }
 }

@@ -5,17 +5,13 @@ import org.springframework.stereotype.Service;
 import top.dj.POJO.DO.Menu;
 import top.dj.POJO.DO.Permission;
 import top.dj.POJO.DO.Role;
+import top.dj.POJO.DO.UserRole;
 import top.dj.POJO.VO.RoleVO;
-import top.dj.mapper.MetaMapper;
-import top.dj.mapper.PermissionMapper;
-import top.dj.mapper.RoleMapper;
+import top.dj.mapper.*;
 import top.dj.service.PermissionService;
 import top.dj.service.RoleService;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author dj
@@ -33,6 +29,11 @@ public class RoleServiceImpl extends MyServiceImpl<RoleMapper, Role> implements 
     private PermissionService permissionService;
     @Autowired
     private MetaMapper metaMapper;
+    @Autowired
+    private UserMapper userMapper;
+    @Autowired
+    private UserRoleMapper userRoleMapper;
+
 
     @Override
     public List<RoleVO> getRoleVOS() {
@@ -52,6 +53,46 @@ public class RoleServiceImpl extends MyServiceImpl<RoleMapper, Role> implements 
             }
         }
         return roleVOS;
+    }
+
+    @Override
+    public Map<Integer, String> getTheMapOfRole() {
+        Map<String, List<Integer>> map = getRoleUserIds();
+        int visitorSize = map.get("VISITOR").size();
+        int adminSize = map.get("ADMIN").size();
+        int superAdminSize = map.get("SUPERADMIN").size();
+
+        Map<Integer, String> roleMap = new HashMap<>();
+        roleMap.put(0, 1 + "-" + "游客" + "-" + visitorSize);
+        roleMap.put(1, 2 + "-" + "管理员" + "-" + adminSize);
+        roleMap.put(2, 3 + "-" + "超级管理员" + "-" + superAdminSize);
+        return roleMap;
+    }
+
+    /**
+     * 获取指定 角色字符串的 用户id集合
+     *
+     * @return
+     */
+    public Map<String, List<Integer>> getRoleUserIds() {
+        List<UserRole> userRoles = userRoleMapper.selectList(null);
+        List<Integer> visitorIds = new ArrayList<>();
+        List<Integer> adminIds = new ArrayList<>();
+        List<Integer> superAdminIds = new ArrayList<>();
+        Map<String, List<Integer>> roleMap = new HashMap<>();
+
+        userRoles.forEach(userRole -> {
+            Integer roleId = userRole.getRoleId();
+            Integer userId = userRole.getUserId();
+            if (roleId.equals(1)) visitorIds.add(userId);
+            if (roleId.equals(2)) adminIds.add(userId);
+            if (roleId.equals(3)) superAdminIds.add(userId);
+        });
+
+        roleMap.put("VISITOR", visitorIds);
+        roleMap.put("ADMIN", adminIds);
+        roleMap.put("SUPERADMIN", superAdminIds);
+        return roleMap;
     }
 
 //    @Override

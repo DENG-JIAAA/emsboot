@@ -17,6 +17,7 @@ import top.dj.POJO.VO.ResultVO;
 import top.dj.POJO.VO.UserVO;
 import top.dj.service.LoginService;
 import top.dj.service.UserService;
+import top.dj.utils.PinYinUtil;
 import top.dj.utils.RedisUtil;
 
 import javax.annotation.Resource;
@@ -65,6 +66,8 @@ public class LoginController {
             String redisUsername;
             // 默认 redis 中没有当前用户
             boolean isUserExist = false;
+            // 中文登录名的话会出现编码问题，将其转换为拼音
+            loginUsername = PinYinUtil.getPinyin(loginUsername);
             // 登录成功，随机生成一个 token 令牌
             String token = loginUsername + "-" + UUID.randomUUID().toString();
             if (keys != null) {
@@ -84,7 +87,7 @@ public class LoginController {
             // 将token返回前端
             return new ResTokenVO(20000, "登录成功，用户存在。", token);
         }
-        return new ResTokenVO(200404, "登录失败，用户不存在。", null);
+        return new ResTokenVO(20404, "用户不存在，或密码错误！", null);
     }
 
     /**

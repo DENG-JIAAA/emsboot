@@ -131,4 +131,14 @@ public class BaseController<T> {
         return new ResultVO<>
                 (remove ? 20000 : 20404, "".equals(dynaMsg) ? defaultMsg : dynaMsg, remove);
     }
+
+    /**
+     * 获取当前实体在数据库的总记录数
+     *
+     * @return
+     */
+    @GetMapping("/count")
+    public ResultVO<Integer> getEntityNums() {
+        return new ResultVO<>(20000, "实体在数据库的记录数", myIService.count());
+    }
 }

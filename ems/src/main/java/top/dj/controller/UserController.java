@@ -80,12 +80,18 @@ public class UserController extends BaseController<User> {
                 (OK ? 20000 : 20404, OK ? "获取用户条件查询列表成功" : "获取用户条件查询列表失败", userVO);
     }
 
+    /**
+     * 用户修改个人信息的接口
+     *
+     * @param user 需要修改的信息
+     * @return
+     */
     @PutMapping("/modifyProfile")
     public ResultVO<Boolean> modifyProfile(@RequestBody User user) {
-        int i = userMapper.updateById(user);
+        int i = userService.updateByUserId(user);
         boolean OK = i == 1;
         return new ResultVO<>
-                (OK ? 20000 : 20404, OK ? "修改资料成功" : "修改资料失败", OK);
+                (20000, OK ? "修改资料成功" : "修改资料失败", OK);
     }
 
     @GetMapping("/changePwd")
@@ -113,5 +119,6 @@ public class UserController extends BaseController<User> {
         boolean modify = userService.modifyAvatarUrl(id, avatarUrl);
         return new ResultVO<>(20000, "上传头像，返回头像地址。", avatarUrl);
     }
+
 
 }

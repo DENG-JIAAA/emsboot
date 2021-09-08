@@ -19,6 +19,8 @@ class UserMapperTest {
     private UserMapper userMapper;
     @Autowired
     private UserService userService;
+    @Autowired
+    private RoomMapper roomMapper;
 
     @Test
     void test01() {
@@ -35,7 +37,6 @@ class UserMapperTest {
         LoginVO loginVO = new LoginVO("ad0a2492", "pwdad0");
         User user = new User();
         BeanUtils.copyProperties(loginVO, user);
-
         User selectOne = userMapper.selectOne(new QueryWrapper<>(user));
         System.out.println("【mapper】 selectOne = " + selectOne);
 
@@ -48,8 +49,8 @@ class UserMapperTest {
         IPage<User> ip = new Page<>(1, 10);
 
         QueryWrapper queryWrapper = new QueryWrapper();
-        queryWrapper.eq("id",2);
-        IPage<User> userIPage = userMapper.selectPage(ip,queryWrapper);
+        queryWrapper.eq("id", 2);
+        IPage<User> userIPage = userMapper.selectPage(ip, queryWrapper);
         List<User> records = userIPage.getRecords();
         for (User record : records) {
             System.out.println("record = " + record);
@@ -62,6 +63,12 @@ class UserMapperTest {
         User one = userMapper.selectOne(new QueryWrapper<>(new User("djosimon", "654321a")));
         System.out.println("one = " + one);
 
+    }
+
+    @Test
+    void test05() {
+        Integer integer = roomMapper.selectCount(null);
+        System.out.println("integer = " + integer);
     }
 
 }

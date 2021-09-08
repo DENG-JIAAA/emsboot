@@ -13,6 +13,7 @@ public class UserQueryVO {
     Integer limit;
 
     private Integer id;
+    private String loginName;
     private String realName;
     private Integer userRole;
     private Integer userRoom;

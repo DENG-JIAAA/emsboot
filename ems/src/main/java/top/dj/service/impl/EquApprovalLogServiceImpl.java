@@ -161,7 +161,12 @@ public class EquApprovalLogServiceImpl extends MyServiceImpl<EquApprovalLogMappe
         return new int[]{n1, n2, n3, n4, n5, n6};
     }
 
-    // 获取当前用户负责设备库的所有申请记录日志
+    /**
+     * 获取当前用户负责设备库的所有申请记录日志
+     *
+     * @param userId 当前库的管理员id
+     * @return 当前设备库的申请记录
+     */
     private List<EquApprovalLog> getAllLogs(Integer userId) {
         // eIds -- 当前设备库的所有设备id
         List<Integer> eIds = oneRoomEquIds(userService.getById(userId).getUserRoom());

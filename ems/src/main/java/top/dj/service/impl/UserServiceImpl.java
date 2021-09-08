@@ -361,6 +361,17 @@ public class UserServiceImpl extends MyServiceImpl<UserMapper, User> implements 
         return userMapper.updateById(user) == 1;
     }
 
+    @Override
+    public int updateByUserId(User user) {
+        List<User> userList = userMapper.selectList(null);
+        for (User one : userList) {
+            if (user.getLoginName().equals(one.getLoginName()) && !user.getId().equals(one.getId())) {
+                return -1;
+            }
+        }
+        return userMapper.updateById(user);
+    }
+
     public String upload(HttpServletRequest request, String name) throws IOException {
         MultipartFile file = ((MultipartRequest) request).getFile(name);
 
@@ -376,7 +387,13 @@ public class UserServiceImpl extends MyServiceImpl<UserMapper, User> implements 
         return qiNiuService.saveImage(file);
     }
 
-    protected Integer getRoomIdIfNoSuper(User user) {
+    /**
+     * 不是管理员或超级管理员返回null
+     *
+     * @param user
+     * @return
+     */
+    public Integer getRoomIdIfNoSuper(User user) {
         Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
         boolean hasSuper = false;
         Integer roomId = user.getUserRoom();

@@ -10,6 +10,7 @@ import top.dj.POJO.VO.RoleVO;
 import top.dj.service.RoleService;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author dj
@@ -29,12 +30,10 @@ public class RoleController extends BaseController<Role> {
                 (OK ? 20000 : 20404, OK ? "获取角色列表成功" : "获取角色列表失败", roleVOS);
     }
 
-//    @GetMapping("/vo/{id}")
-//    public ResultVO<RoleVO> getOneVORoles(@PathVariable("id") Integer id) {
-//        RoleVO oneRoleVO = roleService.getOneRoleVO(id);
-//        boolean OK = oneRoleVO != null;
-//        return new ResultVO<>
-//                (OK ? 20000 : 20404, OK ? "获取角色成功" : "获取角色失败", oneRoleVO);
-//    }
+    @GetMapping("/map")
+    public ResultVO<Map<Integer, String>> getTheMapOfRole() {
+        Map<Integer, String> map = roleService.getTheMapOfRole();
+        return new ResultVO<>(20000, "角色分布情况", map);
+    }
 
 }

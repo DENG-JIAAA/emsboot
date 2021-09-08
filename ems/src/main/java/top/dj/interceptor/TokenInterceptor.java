@@ -2,10 +2,12 @@ package top.dj.interceptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import top.dj.POJO.DO.User;
+import top.dj.service.UserService;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -23,6 +25,8 @@ import java.util.Map;
 public class TokenInterceptor implements HandlerInterceptor {
     @Resource
     private RedisTemplate<String, User> redisTemplate;
+    @Autowired
+    private UserService userService;
 
     /**
      * 在目标方法执行之前执行
@@ -60,6 +64,9 @@ public class TokenInterceptor implements HandlerInterceptor {
         if (user != null) {
             // 只要用户还在继续操作，就要刷新token的剩余时间。
             redisTemplate.expire(token, Duration.ofDays(1L));
+            // 更新redis用户数据为mysql的用户数据
+            User nowDBUser = userService.getById(user.getId());
+            redisTemplate.opsForValue().set(token, nowDBUser);
             return true;
         }
         /*

@@ -216,4 +216,38 @@ public class UserServiceTest {
         System.out.println("one = " + one);
 
     }
+
+    @Test
+    void test16() {
+        /*User one = userService.getOne(new QueryWrapper<>(new User(132)));
+
+        Collection<? extends GrantedAuthority> authorities = one.getAuthorities();
+
+        if (authorities.size() == 1 && visitor(authorities)) {
+            one.setUserRoom(0);
+            userService.updateByUserId(one);
+            System.out.println("游客");
+        }
+        System.out.println();*/
+
+        List<User> list = userService.list(null);
+        for (User user : list) {
+            User one = userService.getOne(new QueryWrapper<>(new User(user.getId())));
+            Collection<? extends GrantedAuthority> authorities = one.getAuthorities();
+            if (authorities.size() == 1 && visitor(authorities)) {
+                one.setUserRoom(null);
+                userService.updateByUserId(one);
+            }
+        }
+
+    }
+
+    boolean visitor(Collection<? extends GrantedAuthority> authorities) {
+        for (GrantedAuthority authority : authorities) {
+            if (authority.getAuthority().equals("ROLE_VISITOR")) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

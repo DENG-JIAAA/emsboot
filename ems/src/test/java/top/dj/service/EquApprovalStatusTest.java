@@ -8,9 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import top.dj.POJO.DO.EquApproval;
 import top.dj.POJO.DO.Equipment;
+import top.dj.POJO.DO.User;
 import top.dj.mapper.EquApprovalMapper;
 import top.dj.mapper.EquApprovalStatusMapper;
 import top.dj.mapper.EquipmentMapper;
+import top.dj.service.impl.EquApprovalServiceImpl;
+import top.dj.service.impl.UserServiceImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +36,12 @@ public class EquApprovalStatusTest {
     private EquApprovalMapper equApprovalMapper;
     @Autowired
     private EquCateService equCateService;
+    @Autowired
+    private UserServiceImpl userServiceImpl;
+    @Autowired
+    private UserServiceImpl userService;
+    @Autowired
+    private EquApprovalServiceImpl equApprovalServiceImpl;
 
     @Test
     void test01() {
@@ -63,7 +72,6 @@ public class EquApprovalStatusTest {
         for (EquApproval a : approvals) {
             System.out.println("a = " + a);
         }
-
 
     }
 
@@ -113,6 +121,23 @@ public class EquApprovalStatusTest {
         for (Equipment equipment : equipmentList) {
             System.out.println("equipment = " + equipment);
         }
+    }
+
+    @Test
+    void test06() {
+
+
+        User visitor = userService.getOne(new QueryWrapper<>(new User("visitor6")));
+        User admin6 = userService.getOne(new QueryWrapper<>(new User("admin6")));
+        User sadmin6 = userService.getOne(new QueryWrapper<>(new User("sadmin6")));
+        User djosimon = userService.getOne(new QueryWrapper<>(new User("djosimon")));
+
+        boolean b = equApprovalServiceImpl.AdminOrSuper(visitor);
+        boolean b1 = equApprovalServiceImpl.AdminOrSuper(admin6);
+        boolean b2 = equApprovalServiceImpl.AdminOrSuper(sadmin6);
+        boolean b3 = equApprovalServiceImpl.AdminOrSuper(djosimon);
+
+        System.out.println();
     }
 
 }

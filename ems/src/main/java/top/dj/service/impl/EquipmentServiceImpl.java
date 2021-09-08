@@ -56,6 +56,8 @@ public class EquipmentServiceImpl extends MyServiceImpl<EquipmentMapper, Equipme
 
     /**
      * 封装以适应前端的 EquVO 分页数据
+     * 对于普通用户来说 应该可以对所有的设备发起借用申请
+     * 管理员的话可以查看本设备库的所有设备详细信息
      */
     @Override
     public DataVO<EquVO> findEquVO(Integer page, Integer limit, User nowUser) {

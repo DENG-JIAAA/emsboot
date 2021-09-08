@@ -388,7 +388,7 @@ public class EquApprovalServiceImpl extends MyServiceImpl<EquApprovalMapper, Equ
             equipment.setEquQuantity(equipment.getEquQuantity() + maintainQuantity);
             j = equipmentMapper.updateById(equipment);
         }
-        return approval != null && m == 1 && i == 1 && j == 1;
+        return approval != null && i == 1 && j == 1;
     }
 
     /**

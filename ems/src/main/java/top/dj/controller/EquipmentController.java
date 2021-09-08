@@ -168,4 +168,5 @@ public class EquipmentController extends BaseController<Equipment> {
         boolean modify = equipmentService.modifyImgUrl(id, url);
         return new ResultVO<>(20000, "修改设备图片，返回头像地址。", url);
     }
+
 }

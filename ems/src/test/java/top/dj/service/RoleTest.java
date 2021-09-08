@@ -5,6 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import top.dj.POJO.DO.Role;
 import top.dj.POJO.VO.ResultVO;
+import top.dj.service.impl.RoleServiceImpl;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author dj
@@ -14,6 +18,8 @@ import top.dj.POJO.VO.ResultVO;
 public class RoleTest {
     @Autowired
     private RoleService roleService;
+    @Autowired
+    private RoleServiceImpl roleServiceImpl;
 
     @Test
     void test() {
@@ -32,5 +38,11 @@ public class RoleTest {
     void test02() {
         System.out.println("roleService.getById(1) = " + roleService.getById(1));
         System.out.println("roleService.getById(2) = " + roleService.getById(2));
+    }
+
+    @Test
+    void test03() {
+        Map<String, List<Integer>> roleUserIds = roleServiceImpl.getRoleUserIds();
+        System.out.println("roleUserIds = " + roleUserIds);
     }
 }
